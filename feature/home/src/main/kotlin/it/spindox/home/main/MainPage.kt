@@ -33,18 +33,19 @@ import it.spindox.designsystem.components.ThemeSwitcher
 import it.spindox.result.Resource
 import it.spindox.result.loading
 import it.spindox.designsystem.theme.MainAppTheme
+import it.spindox.home.detail.PokemonReference
 
 @Composable
 fun MainPage(
     viewModel: MainViewModel = hiltViewModel(),
-
-    // -- Navigation -- //
-    onGoToDetails: (String) -> Unit,
+    onGoToDetails: (String, String) -> Unit,
 ) {
 
     val state = viewModel.uiState.collectAsState().value
     val event = viewModel.event.copy (
-        onItemClick = { onGoToDetails(it) }
+        onItemClick = { name, url ->
+            onGoToDetails(name, url)
+        }
     )
 
     MainPageUi(
@@ -85,7 +86,7 @@ fun MainPageUi(
                                 event.onFavoriteClick(index)
                             },
                             onClick = {
-                                event.onItemClick(item.name)
+                                event.onItemClick(item.name, item.url)
                             },
                         )
                     }

@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 object Main
 
 @Serializable
-data class Detail(val name: String)
+data class Detail(val name: String, val url: String)
 
 @Composable
 fun MainNavigation() {
@@ -25,13 +25,16 @@ fun MainNavigation() {
     ) {
         composable<Main> {
             MainPage(
-                onGoToDetails = { navController.navigate(Detail(it)) }
+                onGoToDetails = { name, url ->
+                    navController.navigate(Detail(name, url))
+                }
             )
         }
         composable<Detail> { backStackEntry ->
             val detail: Detail = backStackEntry.toRoute()
             DetailPage(
                 name = detail.name,
+                detailsUrl = detail.url,
                 onGoBack = { navController.popBackStack() }
             )
         }

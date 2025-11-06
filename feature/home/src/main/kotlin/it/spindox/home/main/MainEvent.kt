@@ -1,9 +1,10 @@
 package it.spindox.home.main
 
+
 data class MainEvent (
-    val onItemClick: (String) -> Unit,
+    val onItemClick: (String, String) -> Unit,
     val onFavoriteClick: (Int) -> Unit,
     val onThemeSwitcherClick: () -> Unit,
 )
 
-val emptyMainEvent = MainEvent ( {},{},{} )
+val emptyMainEvent = MainEvent ( { _, _ -> },{},{} )

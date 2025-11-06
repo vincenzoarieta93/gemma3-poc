@@ -38,7 +38,7 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<MainState> = _uiState.asStateFlow()
 
     val event = MainEvent (
-        onItemClick = { },
+        onItemClick = { _, _ -> },
         onThemeSwitcherClick = { toggleTheme() },
         onFavoriteClick = { addFavoriteItem(it) }
     )
@@ -84,6 +84,7 @@ class MainViewModel @Inject constructor(
                         allItems.data.map { item ->
                             ItemState(
                                 name = item.name,
+                                url = item.url,
                                 isFavorite = favoriteItems.any { it.name == item.name }
                             )
                         }

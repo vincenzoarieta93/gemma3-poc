@@ -9,7 +9,7 @@ data class DetailScreenState (
 
 data class DetailState (
     val isLoading: Boolean = false,
-    val name: String = "",
+    val reference: PokemonReference? = null,
 )
 
 sealed interface FunFactUiState {
@@ -23,7 +23,7 @@ sealed interface FunFactUiState {
  */
 val sampleDetailState = DetailState (
     isLoading = false,
-    name = "Charizard",
+    reference = null,
 )
 
 val sampleDetailScreenState = DetailScreenState (

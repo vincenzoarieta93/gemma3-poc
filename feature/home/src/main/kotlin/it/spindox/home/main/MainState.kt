@@ -11,16 +11,17 @@ data class MainState (
 
 data class ItemState (
     val name: String,
+    val url: String,
     val isFavorite: Boolean,
 )
 
 val sampleMainState = MainState (
     pokemonList = success {
         listOf(
-            ItemState(name = "bulbasaur", isFavorite = false),
-            ItemState(name = "charmender", isFavorite = true),
-            ItemState(name = "squirtle", isFavorite = false),
-            ItemState(name = "spindox", isFavorite = false),
+            ItemState(name = "bulbasaur", "https://pokeapi.co/api/v2/pokemon/1", isFavorite = false),
+            ItemState(name = "charmender", "https://pokeapi.co/api/v2/pokemon/4/", isFavorite = true),
+            ItemState(name = "squirtle", "https://pokeapi.co/api/v2/pokemon/7/", isFavorite = false),
+            ItemState(name = "ivysaur", "https://pokeapi.co/api/v2/pokemon/2/", isFavorite = false),
         )
     },
 )
