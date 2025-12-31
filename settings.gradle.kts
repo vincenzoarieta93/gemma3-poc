@@ -27,7 +27,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Poc Gemma3 270M"
+rootProject.name = "Poc Gemma3"
 include(":app")
 include(":core:common")
 include(":core:data")

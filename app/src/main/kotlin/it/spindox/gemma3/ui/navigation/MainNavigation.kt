@@ -2,18 +2,13 @@ package it.spindox.gemma3.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import it.spindox.home.detail.DetailPage
+import androidx.navigation.compose.composable
 import it.spindox.home.main.MainPage
-import kotlinx.serialization.Serializable
 
-@Serializable
-object Main
-
-@Serializable
-data class Detail(val name: String, val url: String)
+const val MODEL_SELECTION_SCREEN = "model_selection_screen"
+const val LOAD_SCREEN = "load_screen"
+const val CHAT_SCREEN = "chat_screen"
 
 @Composable
 fun MainNavigation() {
@@ -21,22 +16,20 @@ fun MainNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Main
+        startDestination = MODEL_SELECTION_SCREEN
     ) {
-        composable<Main> {
+        composable(MODEL_SELECTION_SCREEN) {
             MainPage(
-                onGoToDetails = { name, url ->
-                    navController.navigate(Detail(name, url))
+                onModelSelected = {
+                    navController.navigate(LOAD_SCREEN) {
+                        popUpTo(MODEL_SELECTION_SCREEN) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
-        composable<Detail> { backStackEntry ->
-            val detail: Detail = backStackEntry.toRoute()
-            DetailPage(
-                name = detail.name,
-                detailsUrl = detail.url,
-                onGoBack = { navController.popBackStack() }
-            )
+        composable(LOAD_SCREEN) { backStackEntry ->
+            TODO()
         }
     }
 }

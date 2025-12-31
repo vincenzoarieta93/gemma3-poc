@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter)
     implementation(libs.okhttp.interceptor)
+    implementation(libs.tasks.genai)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

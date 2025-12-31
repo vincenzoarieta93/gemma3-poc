@@ -8,29 +8,154 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val LightColorScheme =
+    lightColorScheme(
+        primary = primaryLight,
+        onPrimary = onPrimaryLight,
+        primaryContainer = primaryContainerLight,
+        onPrimaryContainer = onPrimaryContainerLight,
+        secondary = secondaryLight,
+        onSecondary = onSecondaryLight,
+        secondaryContainer = secondaryContainerLight,
+        onSecondaryContainer = onSecondaryContainerLight,
+        tertiary = tertiaryLight,
+        onTertiary = onTertiaryLight,
+        tertiaryContainer = tertiaryContainerLight,
+        onTertiaryContainer = onTertiaryContainerLight,
+        error = errorLight,
+        onError = onErrorLight,
+        errorContainer = errorContainerLight,
+        onErrorContainer = onErrorContainerLight,
+        background = backgroundLight,
+        onBackground = onBackgroundLight,
+        surface = surfaceLight,
+        onSurface = onSurfaceLight,
+        surfaceVariant = surfaceVariantLight,
+        onSurfaceVariant = onSurfaceVariantLight,
+        outline = outlineLight,
+        outlineVariant = outlineVariantLight,
+        scrim = scrimLight,
+        inverseSurface = inverseSurfaceLight,
+        inverseOnSurface = inverseOnSurfaceLight,
+        inversePrimary = inversePrimaryLight,
+        surfaceDim = surfaceDimLight,
+        surfaceBright = surfaceBrightLight,
+        surfaceContainerLowest = surfaceContainerLowestLight,
+        surfaceContainerLow = surfaceContainerLowLight,
+        surfaceContainer = surfaceContainerLight,
+        surfaceContainerHigh = surfaceContainerHighLight,
+        surfaceContainerHighest = surfaceContainerHighestLight,
+    )
+
+private val DarkColorScheme =
+    darkColorScheme(
+        primary = primaryDark,
+        onPrimary = onPrimaryDark,
+        primaryContainer = primaryContainerDark,
+        onPrimaryContainer = onPrimaryContainerDark,
+        secondary = secondaryDark,
+        onSecondary = onSecondaryDark,
+        secondaryContainer = secondaryContainerDark,
+        onSecondaryContainer = onSecondaryContainerDark,
+        tertiary = tertiaryDark,
+        onTertiary = onTertiaryDark,
+        tertiaryContainer = tertiaryContainerDark,
+        onTertiaryContainer = onTertiaryContainerDark,
+        error = errorDark,
+        onError = onErrorDark,
+        errorContainer = errorContainerDark,
+        onErrorContainer = onErrorContainerDark,
+        background = backgroundDark,
+        onBackground = onBackgroundDark,
+        surface = surfaceDark,
+        onSurface = onSurfaceDark,
+        surfaceVariant = surfaceVariantDark,
+        onSurfaceVariant = onSurfaceVariantDark,
+        outline = outlineDark,
+        outlineVariant = outlineVariantDark,
+        scrim = scrimDark,
+        inverseSurface = inverseSurfaceDark,
+        inverseOnSurface = inverseOnSurfaceDark,
+        inversePrimary = inversePrimaryDark,
+        surfaceDim = surfaceDimDark,
+        surfaceBright = surfaceBrightDark,
+        surfaceContainerLowest = surfaceContainerLowestDark,
+        surfaceContainerLow = surfaceContainerLowDark,
+        surfaceContainer = surfaceContainerDark,
+        surfaceContainerHigh = surfaceContainerHighDark,
+        surfaceContainerHighest = surfaceContainerHighestDark,
+    )
+
+@Immutable
+data class CustomColors(
+    val appTitleGradientColors: List<Color> = listOf(),
+    val tabHeaderBgColor: Color = Color.Transparent,
+    val taskCardBgColor: Color = Color.Transparent,
+    val taskBgColors: List<Color> = listOf(),
+    val taskBgGradientColors: List<List<Color>> = listOf(),
+    val taskIconColors: List<Color> = listOf(),
+    val taskIconShapeBgColor: Color = Color.Transparent,
+    val homeBottomGradient: List<Color> = listOf(),
+    val userBubbleBgColor: Color = Color.Transparent,
+    val agentBubbleBgColor: Color = Color.Transparent,
+    val linkColor: Color = Color.Transparent,
+    val successColor: Color = Color.Transparent,
+    val recordButtonBgColor: Color = Color.Transparent,
+    val waveFormBgColor: Color = Color.Transparent,
+    val modelInfoIconColor: Color = Color.Transparent,
+    val warningContainerColor: Color = Color.Transparent,
+    val warningTextColor: Color = Color.Transparent,
+    val errorContainerColor: Color = Color.Transparent,
+    val errorTextColor: Color = Color.Transparent,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+val LocalCustomColors = staticCompositionLocalOf { CustomColors() }
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
+val lightCustomColors =
+    CustomColors(
+        appTitleGradientColors = listOf(Color(0xFF85B1F8), Color(0xFF3174F1)),
+        tabHeaderBgColor = Color(0xFF3174F1),
+        homeBottomGradient = listOf(Color(0x00F8F9FF), Color(0xffFFEFC9)),
+        agentBubbleBgColor = Color(0xFFe9eef6),
+        userBubbleBgColor = Color(0xFF32628D),
+        linkColor = Color(0xFF32628D),
+        successColor = Color(0xff3d860b),
+        recordButtonBgColor = Color(0xFFEE675C),
+        waveFormBgColor = Color(0xFFaaaaaa),
+        modelInfoIconColor = Color(0xFFCCCCCC),
+        warningContainerColor = Color(0xfffef7e0),
+        warningTextColor = Color(0xffe37400),
+        errorContainerColor = Color(0xfffce8e6),
+        errorTextColor = Color(0xffd93025),
+    )
+
+val darkCustomColors =
+    CustomColors(
+        appTitleGradientColors = listOf(Color(0xFF85B1F8), Color(0xFF3174F1)),
+        tabHeaderBgColor = Color(0xFF3174F1),
+        homeBottomGradient = listOf(Color(0x00F8F9FF), Color(0x1AF6AD01)),
+        agentBubbleBgColor = Color(0xFF1b1c1d),
+        userBubbleBgColor = Color(0xFF1f3760),
+        linkColor = Color(0xFF9DCAFC),
+        successColor = Color(0xFFA1CE83),
+        recordButtonBgColor = Color(0xFFEE675C),
+        waveFormBgColor = Color(0xFFaaaaaa),
+        modelInfoIconColor = Color(0xFFCCCCCC),
+        warningContainerColor = Color(0xff554c33),
+        warningTextColor = Color(0xfffcc934),
+        errorContainerColor = Color(0xff523a3b),
+        errorTextColor = Color(0xffee675c),
+    )
+
+val MaterialTheme.customColors: CustomColors
+    @Composable @ReadOnlyComposable get() = LocalCustomColors.current
 
 @Composable
 fun MainAppTheme(
@@ -49,9 +174,9 @@ fun MainAppTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    val customColorsPalette = if (darkTheme) darkCustomColors else lightCustomColors
+    
+    CompositionLocalProvider(LocalCustomColors provides customColorsPalette) {
+        MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    }
 }

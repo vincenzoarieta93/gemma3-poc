@@ -1,9 +1,20 @@
 package it.spindox.result
 
+import java.lang.RuntimeException
+
 sealed class Resource<out T> {
     data class Success<out T>(val data: T) : Resource<T>()
-    data class Error(val message: String) : Resource<Nothing>()
+    data class Error(val throwable: Throwable) : Resource<Nothing>() {
+        fun getErrorMessage(): String {
+            return throwable.message ?: "Generic error"
+        }
+    }
+
     data object Loading : Resource<Nothing>()
+
+    companion object {
+        val DEFAULT_ERROR = RuntimeException("Resource Failed to load.")
+    }
 }
 
 //FIXME and help me 😭
@@ -32,9 +43,9 @@ fun <T> Flow<T>.asResult(): Flow<Resource<T>> = map<T, Resource<T>> { Resource.S
  * @return A [Resource] of type [O]
  */
 inline fun <T, O> Resource<T>.map(transform: (T) -> O): Resource<O> {
-    return when(this) {
+    return when (this) {
         is Resource.Success -> success { transform(data) }
-        is Resource.Error -> error { message }
+        is Resource.Error -> error { throwable }
         Resource.Loading -> loading()
     }
 }
@@ -43,7 +54,7 @@ inline fun <T> success(dataProducer: () -> T): Resource<T> {
     return Resource.Success(dataProducer())
 }
 
-inline fun <T> error(errorProducer: () -> String = { "Error" }): Resource<T> {
+inline fun <T> error(errorProducer: () -> Throwable = { Resource.DEFAULT_ERROR }): Resource<T> {
     return Resource.Error(errorProducer())
 }
 

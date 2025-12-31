@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.retrofit.kotlin.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.interceptor)
+    implementation(libs.tasks.genai)
 
     testImplementation(libs.junit)
     testImplementation(libs.junit.jupiter)

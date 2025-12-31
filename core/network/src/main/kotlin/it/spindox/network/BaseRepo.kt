@@ -19,25 +19,25 @@ abstract class BaseRepo {
                         Resource.Success(data = it)
                     } ?: run {
                         Log.e("api error", "Response body is null")
-                        Resource.Error(message = "Empty response body")
+                        Resource.Error(RuntimeException("Empty response body"))
                     }
                 } else {
                     Log.e(
                         "api error",
                         "OkHttp API error response: ${response.code()}, description: ${response.message()}"
                     )
-                    Resource.Error(message = response.code().toString())
+                    Resource.Error(RuntimeException(response.code().toString()))
                 }
 
             } catch (e: HttpException) {
                 Log.e("api error", "HttpException: ${e.message}")
-                Resource.Error(message = e.message ?: "Something went wrong")
+                Resource.Error(e)
             } catch (e: IOException) {
                 Log.e("api error", "IOException: ${e.message}")
-                Resource.Error("Please check your network connection")
+                Resource.Error(e)
             } catch (e: Exception) {
                 Log.e("api error", "Exception: ${e.message}")
-                Resource.Error(message = e.message ?: "Something went wrong")
+                Resource.Error(e)
             }
         }
     }

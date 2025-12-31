@@ -5,9 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,22 +27,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import it.spindox.designsystem.utils.ThemePreviews
-import it.spindox.designsystem.components.ThemeSwitcher
 import it.spindox.result.Resource
 import it.spindox.result.loading
 import it.spindox.designsystem.theme.MainAppTheme
-import it.spindox.home.detail.PokemonReference
 
 @Composable
 fun MainPage(
     viewModel: MainViewModel = hiltViewModel(),
-    onGoToDetails: (String, String) -> Unit,
+    onModelSelected: () -> Unit,
 ) {
 
     val state = viewModel.uiState.collectAsState().value
     val event = viewModel.event.copy (
-        onItemClick = { name, url ->
-            onGoToDetails(name, url)
+        onModelSelected = { model ->
+            viewModel.onLlmModelUiSelected(model)
+            onModelSelected()
         }
     )
 
@@ -66,27 +63,18 @@ fun MainPageUi(
             .padding(start = 16.dp, end = 16.dp, top = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ThemeSwitcher(
-            isDarkTheme = state.isDarkTheme,
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            event.onThemeSwitcherClick()
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        when(state.pokemonList) {
+        when(state.modelsList) {
             is Resource.Success -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    itemsIndexed(state.pokemonList.data) { index, item ->
+                    itemsIndexed(state.modelsList.data) { index, item ->
                         ItemCard(
                             item = item,
-                            onFavoriteClick = {
-                                event.onFavoriteClick(index)
-                            },
+                            onFavoriteClick = {},
                             onClick = {
-                                event.onItemClick(item.name, item.url)
+                                event.onModelSelected(item)
                             },
                         )
                     }
@@ -94,7 +82,7 @@ fun MainPageUi(
             }
             is Resource.Error -> {
                 Text(
-                    text = "Error: ${state.pokemonList.message}"
+                    text = "Error: ${state.modelsList.getErrorMessage()}"
                 )
             }
             Resource.Loading -> {
@@ -110,7 +98,7 @@ fun MainPageUi(
 
 @Composable
 private fun ItemCard (
-    item: ItemState,
+    item: LlmModelUi,
     onFavoriteClick: () -> Unit,
     onClick: () -> Unit,
 ) {
@@ -131,7 +119,7 @@ private fun ItemCard (
         )
         Icon(
             modifier = Modifier.clickable { onFavoriteClick() },
-            imageVector = if(item.isFavorite) Icons.Filled.Favorite
+            imageVector = if (false) Icons.Filled.Favorite
                 else Icons.Outlined.FavoriteBorder,
             tint = MaterialTheme.colorScheme.primary,
             contentDescription = "Add to favorite icon",
@@ -156,7 +144,7 @@ private fun MainPageUiResultsPreview() = MainAppTheme {
 private fun MainPageUiLoadingPreview() = MainAppTheme {
     MainPageUi(
         state = sampleMainState.copy(
-            pokemonList = loading()
+            modelsList = loading()
         ),
         event = emptyMainEvent,
     )

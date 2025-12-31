@@ -69,6 +69,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.tasks.genai)
+    implementation(libs.material.icon.extended)
+    implementation(libs.commonmark)
+    implementation(libs.richtext)
 
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(libs.junit)

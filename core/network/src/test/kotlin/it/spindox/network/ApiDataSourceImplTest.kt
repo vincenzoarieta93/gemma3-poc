@@ -30,7 +30,7 @@ class ApiDataSourceImplTest {
     }
 
     @Test
-    fun getAllPokemons() = runBlocking {
+    fun getAllModels() = runBlocking {
         // Arrange: Prepare mock response
         val mockResponse = MockResponse().setBody(
             """{
