@@ -63,11 +63,6 @@ fun PreparationRoute(
                     preparationEvents.onGoToLogin()
                 }
 
-                is DownloadEvent.DownloadCancelled -> {
-                    snackbarHostState.showSnackbar(
-                        message = "Download cancelled", withDismissAction = true
-                    )
-                }
             }
         }
     }

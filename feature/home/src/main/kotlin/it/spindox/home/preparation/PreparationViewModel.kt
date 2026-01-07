@@ -44,9 +44,8 @@ class PreparationViewModel @Inject constructor(
 
     fun cancelDownload() {
         viewModelScope.launch {
-            deleteModelFileUseCase()
             downloadJob?.cancel()
-            _downloadEvent.emit(DownloadEvent.DownloadCancelled)
+            deleteModelFileUseCase()
             _stateUi.update { oldState ->
                 oldState.copy(
                     isDownloading = false,
@@ -140,6 +139,5 @@ data class PreparationState(
 sealed interface DownloadEvent {
     object DownloadCompleted : DownloadEvent
     object MissingAccessToken : DownloadEvent
-    object DownloadCancelled : DownloadEvent
     data class DownloadFailed(val errorMessage: String) : DownloadEvent
 }
