@@ -29,4 +29,21 @@ class DataStoreDataSourceImpl @Inject constructor(
     override suspend fun setThemeAppearance(value: Int) {
         dataStoreManager.setThemeAppearance(value)
     }
+
+    override suspend fun saveCodeVerifier(value: String) {
+        dataStoreManager.saveCodeVerifier(value)
+    }
+
+    override fun getCodeVerifier(): Flow<String> = dataStoreManager.getCodeVerifier()
+
+
+    override suspend fun saveToken(value: String) {
+        dataStoreManager.saveToken(value)
+    }
+
+    override fun getToken(): Flow<String> = dataStoreManager.getToken()
+
+    override suspend fun removeToken() {
+        dataStoreManager.removeToken()
+    }
 }

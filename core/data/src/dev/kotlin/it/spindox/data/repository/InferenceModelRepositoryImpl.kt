@@ -18,6 +18,8 @@ import it.spindox.data.repository.abstraction.InferenceModelRepository
 import it.spindox.result.Resource
 import it.spindox.result.error
 import it.spindox.result.success
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.max
@@ -46,6 +48,8 @@ class InferenceModelRepositoryImpl @Inject constructor(
     override fun setModel(llmModel: LlmModel) {
         model = llmModel
     }
+
+    override fun getModel(): LlmModel? = model
 
     override fun resetModel() {
         model = null
@@ -175,8 +179,26 @@ class InferenceModelRepositoryImpl @Inject constructor(
             ?.takeUnless { it.isBlank() }?.let { File(context.filesDir, it).absolutePath }.orEmpty()
     }
 
+    override fun getModelPath(): String {
+        return model?.path?.takeUnless(String::isBlank)?.takeIf { File(it).exists() }
+            ?: getModelPathFromUrl()
+    }
+
     override fun doesModelExist(): Boolean {
         return File(getModelPath()).exists()
+    }
+
+    override suspend fun deleteDownloadedModel() {
+        withContext(Dispatchers.IO) {
+            try {
+                val outputFile = File(getModelPathFromUrl())
+                if (outputFile.exists()) {
+                    outputFile.delete()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error while deleting model", e)
+            }
+        }
     }
 
     /**
@@ -228,11 +250,6 @@ class InferenceModelRepositoryImpl @Inject constructor(
     } catch (e: Exception) {
         Log.e(TAG, "Unable to create session", e)
         throw CreateSessionInferenceTaskException()
-    }
-
-    private fun getModelPath(): String {
-        return model?.path?.takeUnless(String::isBlank)?.takeIf { File(it).exists() }
-            ?: getModelPathFromUrl()
     }
 
     private fun closeSessionSafely() {

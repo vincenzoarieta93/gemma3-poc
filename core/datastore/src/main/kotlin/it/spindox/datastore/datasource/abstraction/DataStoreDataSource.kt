@@ -9,4 +9,11 @@ interface DataStoreDataSource {
     suspend fun resetDataStore()
     fun getThemeAppearance(): StateFlow<Int>
     suspend fun setThemeAppearance(value: Int)
+
+    // Website auth methods
+    suspend fun saveCodeVerifier(value: String)
+    fun getCodeVerifier(): Flow<String>
+    suspend fun saveToken(value: String)
+    fun getToken(): Flow<String>
+    suspend fun removeToken()
 }

@@ -8,8 +8,10 @@ import it.spindox.result.Resource
 interface InferenceModelRepository {
 
     fun setModel(llmModel: LlmModel)
+    fun getModel(): LlmModel?
     fun resetModel()
     fun getModelPathFromUrl(): String
+    fun getModelPath(): String
     fun doesModelExist(): Boolean
 
     fun initialize(): Resource<Unit>
@@ -18,4 +20,6 @@ interface InferenceModelRepository {
 
     fun generateResponseAsync(prompt: String, progressListener: ProgressListener<String>): ListenableFuture<String>?
     fun estimateTokensRemaining(sessionHistory: List<String>, prompt: String): Int
+
+    suspend fun deleteDownloadedModel()
 }

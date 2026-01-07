@@ -1,35 +1,58 @@
 package it.spindox.gemma3.ui.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
 import it.spindox.home.main.MainPage
-
-const val MODEL_SELECTION_SCREEN = "model_selection_screen"
-const val LOAD_SCREEN = "load_screen"
-const val CHAT_SCREEN = "chat_screen"
+import it.spindox.home.preparation.PreparationRoute
+import it.spindox.navigation.AppRoute
 
 @Composable
-fun MainNavigation() {
+fun MainNavigation(
+    snackbarHostState: SnackbarHostState,
+    startDestination: String?,
+    onGoToLogin: () -> Unit
+) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = MODEL_SELECTION_SCREEN
+        startDestination = startDestination ?: AppRoute.ModelSelectionScreen.route
     ) {
-        composable(MODEL_SELECTION_SCREEN) {
+        composable(AppRoute.ModelSelectionScreen.route) {
             MainPage(
                 onModelSelected = {
-                    navController.navigate(LOAD_SCREEN) {
-                        popUpTo(MODEL_SELECTION_SCREEN) { inclusive = true }
+                    navController.navigate(AppRoute.PreparationScreen.route) {
+                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
             )
         }
-        composable(LOAD_SCREEN) { backStackEntry ->
-            TODO()
+        composable(AppRoute.PreparationScreen.route) { _ ->
+            PreparationRoute(
+                snackbarHostState = snackbarHostState,
+                onModelLoaded = {
+                    TODO()
+                },
+                onDownloadCancelled = {
+                    navController.navigate(AppRoute.ModelSelectionScreen.route) {
+                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onGoToLogin = {
+                    onGoToLogin()
+                },
+                onGoBack = {
+                    navController.navigate(AppRoute.ModelSelectionScreen.route) {
+                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
     }
 }

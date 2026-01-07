@@ -40,4 +40,20 @@ class DataStoreRepositoryImpl @Inject constructor(
     override suspend fun setTheme(theme: ThemeAppearance) {
         dataStoreDataSource.setThemeAppearance(theme.value)
     }
+
+    override suspend fun saveCodeVerifier(value: String) {
+        dataStoreDataSource.saveCodeVerifier(value)
+    }
+
+    override fun getCodeVerifier(): Flow<String> = dataStoreDataSource.getCodeVerifier()
+
+    override suspend fun saveToken(value: String) {
+        dataStoreDataSource.saveToken(value)
+    }
+
+    override fun getToken(): Flow<String> = dataStoreDataSource.getToken()
+
+    override suspend fun removeToken() {
+        dataStoreDataSource.removeToken()
+    }
 }

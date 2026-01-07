@@ -5,9 +5,11 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import it.spindox.data.repository.DataStoreRepositoryImpl
+import it.spindox.data.repository.LlmModelDownloadRepositoryImpl
 import it.spindox.data.repository.abstraction.MainRepository
 import it.spindox.data.repository.MainRepositoryImpl
 import it.spindox.data.repository.abstraction.DataStoreRepository
+import it.spindox.data.repository.abstraction.LlmModelDownloadRepository
 import javax.inject.Singleton
 
 @Module
@@ -21,4 +23,8 @@ abstract class RepositoryBindsModule {
     @Binds
     @Singleton
     abstract fun bindsMainRepository(mainRepository: MainRepositoryImpl): MainRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindsLlmModelDownloadRepository(repository: LlmModelDownloadRepositoryImpl): LlmModelDownloadRepository
 }

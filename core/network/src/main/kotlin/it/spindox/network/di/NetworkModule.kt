@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import it.spindox.network.BuildConfig
 import it.spindox.network.api.PokemonApiService
 import it.spindox.network.di.qualifiers.ApiClient
+import it.spindox.network.di.qualifiers.LlmHttpClient
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -31,6 +32,11 @@ internal object NetworkModule {
                 }
             )
             .build()
+
+    @Provides
+    @Singleton
+    @LlmHttpClient
+    fun provideLlmOkHttpClient(): OkHttpClient = OkHttpClient()
 
     @Provides
     @Singleton

@@ -1,0 +1,4 @@
+<resources>
+
+    <style name="Theme.DroidSkeleton" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

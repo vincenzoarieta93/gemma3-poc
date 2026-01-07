@@ -1,6 +1,7 @@
 package it.spindox.datastore
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -61,6 +62,43 @@ class DataStoreManager @Inject constructor(
         return encryptedPinFlow.map { encryptedPin ->
             val decryptedPinHash = cryptoManager.decryptPin(encryptedPin)
             decryptedPinHash?.contentEquals(pinHash) ?: false
+        }
+    }
+
+    // Website auth region
+
+    suspend fun saveCodeVerifier(value: String) {
+        cryptoManager.encrypt(value.toByteArray())?.let {
+            settingsDataStore.edit { settings ->
+                settings[PreferencesKeys.KEY_CODE_VERIFIER] = it
+            }
+        }
+    }
+
+    fun getCodeVerifier(): Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[PreferencesKeys.KEY_CODE_VERIFIER]?.let { cryptoManager.decrypt(it) }.orEmpty()
+    }
+
+    suspend fun saveToken(value: String) {
+        cryptoManager.encrypt(value.toByteArray())?.let {
+            settingsDataStore.edit { settings ->
+                settings[PreferencesKeys.KEY_ACCESS_TOKEN] = it
+            }
+        }
+    }
+
+    fun getToken(): Flow<String> = settingsDataStore.data.map { preferences ->
+        try {
+            preferences[PreferencesKeys.KEY_ACCESS_TOKEN]?.let { cryptoManager.decrypt(it) }.orEmpty()
+        } catch (e: Exception) {
+            Log.e("DataStoreManager", "Error decrypting token", e)
+            ""
+        }
+    }
+
+    suspend fun removeToken() {
+        settingsDataStore.edit { settings ->
+            settings.remove(PreferencesKeys.KEY_ACCESS_TOKEN)
         }
     }
 }

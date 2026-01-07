@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
+    implementation(project(":core:navigation"))
 
     ksp(libs.hilt.compiler)
     implementation(libs.bundles.hilt)

@@ -20,7 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
+        manifestPlaceholders["appAuthRedirectScheme"] = ""
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -80,7 +80,9 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:domain"))
+    implementation(project(":core:navigation"))
     implementation(project(":feature:home"))
+    implementation(project(":feature:login"))
 
     ksp(libs.hilt.compiler)
     implementation(libs.bundles.hilt)

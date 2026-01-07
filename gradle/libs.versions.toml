@@ -36,6 +36,8 @@ genai = "0.10.29"
 materialIconExtended = "1.7.8"
 commonmark = "1.0.0-alpha03"
 richtext = "1.0.0-alpha03"
+openidAppAuth = "0.11.1"
+
 
 [libraries]
 compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "composeNavigation" }
@@ -87,6 +89,7 @@ androidx-datastore-core-android = { group = "androidx.datastore", name = "datast
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 androidx-ui-tooling-preview-android = { group = "androidx.compose.ui", name = "ui-tooling-preview-android", version.ref = "uiToolingPreviewAndroid" }
+openid-appauth = { group = "net.openid", name = "appauth", version.ref = "openidAppAuth"}
 
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
