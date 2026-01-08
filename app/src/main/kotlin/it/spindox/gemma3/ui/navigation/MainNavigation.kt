@@ -26,7 +26,6 @@ fun MainNavigation(
             MainPage(
                 onModelSelected = {
                     navController.navigate(AppRoute.PreparationScreen.route) {
-                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
@@ -37,7 +36,7 @@ fun MainNavigation(
                 snackbarHostState = snackbarHostState,
                 onModelLoaded = {
                     navController.navigate(AppRoute.SpeechScreen.route) {
-                        popUpTo(AppRoute.SpeechScreen.route) { inclusive = true }
+                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
@@ -52,7 +51,7 @@ fun MainNavigation(
                 },
                 onGoBack = {
                     navController.navigate(AppRoute.ModelSelectionScreen.route) {
-                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
+                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }

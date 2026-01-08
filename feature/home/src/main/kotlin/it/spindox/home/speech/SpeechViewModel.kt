@@ -7,17 +7,22 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
 import it.spindox.data.model.SpeechEvent
+import it.spindox.data.repository.abstraction.InferenceModelRepository
 import it.spindox.data.voicecontroller.SpeechRecognizerController
+import it.spindox.result.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class SpeechViewModel @Inject constructor(
     private val dispatcherProvider: DefaultDispatcherProvider,
-    private val speechRecognizerController: SpeechRecognizerController
+    private val speechRecognizerController: SpeechRecognizerController,
+    private val inferenceModelRepository: InferenceModelRepository
 ) : ViewModel() {
 
     companion object {
@@ -34,6 +39,11 @@ class SpeechViewModel @Inject constructor(
                             oldState.copy(
                                 audioLevel = 0f,
                                 isListening = false,
+                                status = if (event.errorCode == SpeechRecognizer.ERROR_CLIENT) {
+                                    oldState.status
+                                } else {
+                                    SpeechStatus.ERROR
+                                },
                                 recognizedText = if (event.errorCode == SpeechRecognizer.ERROR_CLIENT) {
                                     ""
                                 } else {
@@ -72,7 +82,8 @@ class SpeechViewModel @Inject constructor(
                         Log.d(TAG, "Ready!")
                         _uiState.update { oldState ->
                             oldState.copy(
-                                isListening = true
+                                isListening = true,
+                                status = SpeechStatus.SUCCESS
                             )
                         }
                     }
@@ -102,7 +113,6 @@ class SpeechViewModel @Inject constructor(
         _uiState.update { oldState ->
             oldState.copy(
                 hasAudioPermission = hasPermission
-
             )
         }
     }
@@ -113,5 +123,40 @@ class SpeechViewModel @Inject constructor(
 
     fun stopListening() {
         speechRecognizerController.stopListening()
+    }
+
+    suspend fun initializeAsync() = withContext(Dispatchers.IO) {
+        try {
+            _uiState.update { oldState ->
+                oldState.copy(
+                    status = SpeechStatus.LOADING
+                )
+            }
+
+            val results = inferenceModelRepository.initialize()
+            if (results is Resource.Error) {
+                Log.e(TAG, "Error initializing inference model", results.throwable)
+                _uiState.update { oldState ->
+                    oldState.copy(
+                        status = SpeechStatus.ERROR,
+                        errorMessage = "Failed to initialize inference model"
+                    )
+                }
+            } else {
+                _uiState.update { oldState ->
+                    oldState.copy(
+                        status = SpeechStatus.SUCCESS
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "Error initializing inference model", e)
+            _uiState.update { oldState ->
+                oldState.copy(
+                    status = SpeechStatus.ERROR,
+                    errorMessage = "Failed to initialize inference model"
+                )
+            }
+        }
     }
 }
