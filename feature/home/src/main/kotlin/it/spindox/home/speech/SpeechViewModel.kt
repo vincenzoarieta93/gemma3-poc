@@ -83,6 +83,7 @@ class SpeechViewModel @Inject constructor(
                         _uiState.update { oldState ->
                             oldState.copy(
                                 isListening = true,
+                                recognizedText = "",
                                 status = SpeechStatus.SUCCESS
                             )
                         }
