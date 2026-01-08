@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
 import it.spindox.home.main.MainPage
 import it.spindox.home.preparation.PreparationRoute
+import it.spindox.home.speech.SpeechRoute
 import it.spindox.navigation.AppRoute
 
 @Composable
@@ -35,7 +36,10 @@ fun MainNavigation(
             PreparationRoute(
                 snackbarHostState = snackbarHostState,
                 onModelLoaded = {
-                    TODO()
+                    navController.navigate(AppRoute.SpeechScreen.route) {
+                        popUpTo(AppRoute.SpeechScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onDownloadCancelled = {
                     navController.navigate(AppRoute.ModelSelectionScreen.route) {
@@ -53,6 +57,10 @@ fun MainNavigation(
                     }
                 }
             )
+        }
+
+        composable(AppRoute.SpeechScreen.route) {
+            SpeechRoute()
         }
     }
 }

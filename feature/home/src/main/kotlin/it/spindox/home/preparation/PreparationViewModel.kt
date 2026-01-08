@@ -98,6 +98,15 @@ class PreparationViewModel @Inject constructor(
                         }
                     }
                 }
+            } else {
+                _stateUi.update { oldState ->
+                    oldState.copy(
+                        isDownloading = false,
+                        errorMessage = null,
+                        progress = 100
+                    )
+                }
+                _downloadEvent.emit(DownloadEvent.DownloadCompleted)
             }
         }
     }
