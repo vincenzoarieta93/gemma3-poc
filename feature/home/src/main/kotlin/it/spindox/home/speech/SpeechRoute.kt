@@ -1,5 +1,9 @@
 package it.spindox.home.speech
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -8,6 +12,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,19 +30,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -45,18 +56,42 @@ fun SpeechRoute(
     viewModel: SpeechViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val permission = Manifest.permission.RECORD_AUDIO
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        viewModel.onAudioPermissionUpdated(isGranted)
+    }
+
+    val events = SpeechScreenEvent(
+        onStartListening = { viewModel.startListening() },
+        onStopListening = { viewModel.stopListening() },
+        onRequestPermission = { launcher.launch(permission) }
+    )
+
+    LaunchedEffect(Unit) {
+        val granted = ContextCompat.checkSelfPermission(context, permission) ==
+                PackageManager.PERMISSION_GRANTED
+        viewModel.onAudioPermissionUpdated(granted)
+
+        if (!granted) {
+            launcher.launch(permission)
+        }
+    }
 
     SpeechScreen(
         state = state,
-        onStartListening = { viewModel.startListening() },
-        onStopListening = { viewModel.stopListening() }
+        events = events
     )
 }
 
 
 @Composable
 fun SpeechScreen(
-    state: SpeechUiState, onStartListening: () -> Unit, onStopListening: () -> Unit
+    state: SpeechUiState,
+    events: SpeechScreenEvent
 ) {
     Column(
         modifier = Modifier
@@ -92,9 +127,11 @@ fun SpeechScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 24.dp),
+                hasAudioPermission = state.hasAudioPermission,
                 isListening = state.isListening,
-                onStart = { onStartListening() },
-                onStop = { onStopListening() })
+                onStart = { events.onStartListening() },
+                onRequestPermission = { events.onRequestPermission() },
+                onStop = { events.onStopListening() })
         }
     }
 }
@@ -199,12 +236,21 @@ fun PulsingMic(
 
 @Composable
 fun SpeechText(
-    text: String, isListening: Boolean
+    text: String,
+    isListening: Boolean
 ) {
     val isEmpty = text.isBlank()
 
     Text(
-        text = if (isEmpty) "Listening..." else text,
+        text = when {
+            isListening -> {
+                if (isEmpty) "Listening..." else text
+            }
+
+            else -> {
+                if (isEmpty) "Keep the button pressed to speech" else text
+            }
+        },
         style = MaterialTheme.typography.bodyLarge,
         color = if (isEmpty) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         else MaterialTheme.colorScheme.onSurface,
@@ -214,27 +260,40 @@ fun SpeechText(
 
 @Composable
 fun SpeechFab(
-    modifier: Modifier = Modifier, isListening: Boolean, onStart: () -> Unit, onStop: () -> Unit
+    modifier: Modifier = Modifier,
+    isListening: Boolean,
+    hasAudioPermission: Boolean,
+    onRequestPermission: () -> Unit,
+    onStart: () -> Unit,
+    onStop: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
 
     FloatingActionButton(
         modifier = modifier, onClick = {
-            if (isListening) {
-                haptic.performHapticFeedback(
-                    HapticFeedbackType.TextHandleMove
-                )
-                onStop()
+            if (hasAudioPermission) {
+                if (isListening) {
+                    haptic.performHapticFeedback(
+                        HapticFeedbackType.TextHandleMove
+                    )
+                    onStop()
+                } else {
+                    haptic.performHapticFeedback(
+                        HapticFeedbackType.LongPress
+                    )
+                    onStart()
+                }
             } else {
-                haptic.performHapticFeedback(
-                    HapticFeedbackType.LongPress
-                )
-                onStart()
+                onRequestPermission()
             }
         }) {
         Icon(
-            imageVector = if (isListening) Icons.Default.ArrowUpward
-            else Icons.Default.Mic, contentDescription = null
+            imageVector = if (isListening) {
+                Icons.Default.ArrowUpward
+            } else {
+                Icons.Default.Mic
+            },
+            contentDescription = null,
         )
     }
 }
@@ -247,9 +306,10 @@ fun SpeechScreenPreview() {
         state = SpeechUiState(
             isListening = true,
             recognizedText = "Hello, how are you?",
-            audioLevel = 0f
-        ), onStartListening = {},
-        onStopListening = {}
+            audioLevel = 0f,
+            hasAudioPermission = false,
+        ),
+        events = SpeechScreenEvent()
     )
 }
 

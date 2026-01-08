@@ -26,6 +26,15 @@ class SpeechViewModel @Inject constructor(
         }
     }
 
+    fun onAudioPermissionUpdated(hasPermission: Boolean) {
+        _uiState.update { oldState ->
+            oldState.copy(
+                hasAudioPermission = hasPermission
+
+            )
+        }
+    }
+
     fun startListening() {
         TODO("Not yet implemented")
     }
