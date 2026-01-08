@@ -1,17 +1,89 @@
 package it.spindox.home.speech
 
+import android.speech.SpeechRecognizer
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
+import it.spindox.data.model.SpeechEvent
+import it.spindox.data.voicecontroller.SpeechRecognizerController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SpeechViewModel @Inject constructor(
-    private val dispatcherProvider: DefaultDispatcherProvider
+    private val dispatcherProvider: DefaultDispatcherProvider,
+    private val speechRecognizerController: SpeechRecognizerController
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG: String = "SpeechViewModel"
+    }
+
+    init {
+        viewModelScope.launch {
+            speechRecognizerController.events.collect { event ->
+                when (event) {
+                    is SpeechEvent.Error -> {
+                        Log.d(TAG, "Got error: ${event.errorCode}")
+                        _uiState.update { oldState ->
+                            oldState.copy(
+                                audioLevel = 0f,
+                                isListening = false,
+                                recognizedText = if (event.errorCode == SpeechRecognizer.ERROR_CLIENT) {
+                                    ""
+                                } else {
+                                    oldState.recognizedText
+                                },
+                                errorMessage = if (event.errorCode == SpeechRecognizer.ERROR_CLIENT) {
+                                    null
+                                } else {
+                                    "An error occurred"
+                                }
+
+                            )
+                        }
+                    }
+
+                    is SpeechEvent.Final -> {
+                        Log.d(TAG, "Final: ${event.text}")
+                        _uiState.update { oldState ->
+                            oldState.copy(
+                                isListening = false,
+                                recognizedText = event.text
+                            )
+                        }
+                    }
+
+                    is SpeechEvent.Partial -> {
+                        Log.d(TAG, "Partial: ${event.text}")
+                        _uiState.update { oldState ->
+                            oldState.copy(
+                                recognizedText = event.text
+                            )
+                        }
+                    }
+
+                    SpeechEvent.Ready -> {
+                        Log.d(TAG, "Ready!")
+                        _uiState.update { oldState ->
+                            oldState.copy(
+                                isListening = true
+                            )
+                        }
+                    }
+
+                    is SpeechEvent.Rms -> {
+                        onRmsChanged(event.rms)
+                    }
+                }
+            }
+        }
+    }
 
     private val _uiState: MutableStateFlow<SpeechUiState> =
         MutableStateFlow(emptySpeechUiState)
@@ -36,10 +108,10 @@ class SpeechViewModel @Inject constructor(
     }
 
     fun startListening() {
-        TODO("Not yet implemented")
+        speechRecognizerController.startListening()
     }
 
     fun stopListening() {
-        TODO("Not yet implemented")
+        speechRecognizerController.stopListening()
     }
 }

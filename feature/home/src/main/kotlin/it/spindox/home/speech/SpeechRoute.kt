@@ -24,6 +24,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -129,8 +132,8 @@ fun SpeechScreen(
                     .padding(bottom = 24.dp),
                 hasAudioPermission = state.hasAudioPermission,
                 isListening = state.isListening,
-                onStart = { events.onStartListening() },
                 onRequestPermission = { events.onRequestPermission() },
+                onStart = { events.onStartListening() },
                 onStop = { events.onStopListening() })
         }
     }
@@ -248,12 +251,15 @@ fun SpeechText(
             }
 
             else -> {
-                if (isEmpty) "Keep the button pressed to speech" else text
+                if (isEmpty) "Press the button to speech" else text
             }
         },
         style = MaterialTheme.typography.bodyLarge,
-        color = if (isEmpty) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-        else MaterialTheme.colorScheme.onSurface,
+        color = if (isEmpty) {
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
         textAlign = TextAlign.Center
     )
 }
@@ -267,20 +273,12 @@ fun SpeechFab(
     onStart: () -> Unit,
     onStop: () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
-
     FloatingActionButton(
         modifier = modifier, onClick = {
             if (hasAudioPermission) {
                 if (isListening) {
-                    haptic.performHapticFeedback(
-                        HapticFeedbackType.TextHandleMove
-                    )
                     onStop()
                 } else {
-                    haptic.performHapticFeedback(
-                        HapticFeedbackType.LongPress
-                    )
                     onStart()
                 }
             } else {
@@ -289,7 +287,7 @@ fun SpeechFab(
         }) {
         Icon(
             imageVector = if (isListening) {
-                Icons.Default.ArrowUpward
+                Icons.Default.Delete
             } else {
                 Icons.Default.Mic
             },

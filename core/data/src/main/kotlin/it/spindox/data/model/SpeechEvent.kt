@@ -5,5 +5,5 @@ sealed class SpeechEvent {
     data class Partial(val text: String) : SpeechEvent()
     data class Final(val text: String) : SpeechEvent()
     data class Rms(val rms: Float) : SpeechEvent()
-    object Error : SpeechEvent()
+    data class Error(val errorCode: Int) : SpeechEvent()
 }

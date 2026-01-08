@@ -14,6 +14,9 @@ interface SpeechRecognizerController {
     /** Ferma il riconoscimento vocale */
     fun stopListening()
 
+    /** Cancella il riconoscimento vocale */
+    fun cancelListening()
+
     /** Rilascia risorse */
     fun destroy()
 }

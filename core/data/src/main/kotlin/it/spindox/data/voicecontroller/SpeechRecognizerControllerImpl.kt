@@ -12,67 +12,81 @@ import javax.inject.Inject
 
 class SpeechRecognizerControllerImpl @Inject constructor(
     private val context: Context
-    ) : SpeechRecognizerController {
+) : SpeechRecognizerController {
 
-        override val events = MutableSharedFlow<SpeechEvent>(extraBufferCapacity = 10)
+    override val events = MutableSharedFlow<SpeechEvent>(extraBufferCapacity = 10)
 
-        private val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
+    private val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
 
-        private val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-        }
-
-        init {
-            recognizer.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle) {
-                    events.tryEmit(SpeechEvent.Ready)
-                }
-
-                override fun onRmsChanged(rmsdB: Float) {
-                    events.tryEmit(SpeechEvent.Rms(rmsdB))
-                }
-
-                override fun onBufferReceived(buffer: ByteArray?) {
-                    // Do nothing for now
-                }
-
-                override fun onPartialResults(partialResults: Bundle) {
-                    val text = partialResults
-                        .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        ?.firstOrNull()
-                        .orEmpty()
-                    events.tryEmit(SpeechEvent.Partial(text))
-                }
-
-                override fun onResults(results: Bundle) {
-                    val text = results
-                        .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                        ?.firstOrNull()
-                        .orEmpty()
-                    events.tryEmit(SpeechEvent.Final(text))
-                }
-
-                override fun onError(error: Int) {
-                    events.tryEmit(SpeechEvent.Error)
-                }
-
-                override fun onBeginningOfSpeech() {}
-                override fun onEndOfSpeech() {}
-                override fun onEvent(eventType: Int, params: Bundle) {}
-            })
-        }
-
-        override fun startListening() {
-            recognizer.startListening(intent)
-        }
-
-        override fun stopListening() {
-            recognizer.stopListening()
-        }
-
-        override fun destroy() {
-            recognizer.destroy()
-        }
+    private val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
+        putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
     }
+
+    init {
+        recognizer.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle) {
+                events.tryEmit(SpeechEvent.Ready)
+            }
+
+            override fun onRmsChanged(rmsdB: Float) {
+                events.tryEmit(SpeechEvent.Rms(rmsdB))
+            }
+
+            override fun onBufferReceived(buffer: ByteArray?) {
+                // Do nothing for now
+            }
+
+            override fun onPartialResults(partialResults: Bundle) {
+                val text = partialResults
+                    .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()
+                    .orEmpty()
+                events.tryEmit(SpeechEvent.Partial(text))
+            }
+
+            override fun onResults(results: Bundle) {
+                val text = results
+                    .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()
+                    .orEmpty()
+                events.tryEmit(SpeechEvent.Final(text))
+            }
+
+            override fun onError(error: Int) {
+                events.tryEmit(SpeechEvent.Error(error))
+            }
+
+            override fun onBeginningOfSpeech() {}
+            override fun onEndOfSpeech() {}
+            override fun onEvent(eventType: Int, params: Bundle) {}
+        })
+    }
+
+    override fun startListening() {
+        recognizer.startListening(intent)
+    }
+
+    override fun stopListening() {
+        recognizer.cancel()
+    }
+
+    /**
+     * Cancels the speech recognition process. This method interrupts the recognition session
+     * immediately without waiting for a final result. The `RecognitionListener.onError` callback
+     * might be invoked with `SpeechRecognizer.ERROR_RECOGNIZER_BUSY` if this method is called
+     * while another recognition request is active.
+     *
+     * This effectively stops listening and discards any partial results.
+     */
+    override fun cancelListening() {
+        recognizer.cancel()
+    }
+
+    override fun destroy() {
+        recognizer.destroy()
+    }
+}
