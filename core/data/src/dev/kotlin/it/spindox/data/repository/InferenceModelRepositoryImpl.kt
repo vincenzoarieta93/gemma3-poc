@@ -3,17 +3,6 @@ package it.spindox.data.repository
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.google.ai.edge.localagents.core.proto.Content
-import com.google.ai.edge.localagents.core.proto.FunctionDeclaration
-import com.google.ai.edge.localagents.core.proto.GenerateContentResponse
-import com.google.ai.edge.localagents.core.proto.Part
-import com.google.ai.edge.localagents.core.proto.Schema
-import com.google.ai.edge.localagents.core.proto.Tool
-import com.google.ai.edge.localagents.core.proto.Type
-import com.google.ai.edge.localagents.fc.ChatSession
-import com.google.ai.edge.localagents.fc.GemmaFormatter
-import com.google.ai.edge.localagents.fc.GenerativeModel
-import com.google.ai.edge.localagents.fc.LlmInferenceBackend
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import it.spindox.data.exceptions.NoChatSessionException
 import it.spindox.data.model.LlmModel
@@ -25,6 +14,7 @@ import it.spindox.result.error
 import it.spindox.result.success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.File
 import javax.inject.Inject
 
@@ -37,74 +27,92 @@ class InferenceModelRepositoryImpl @Inject constructor(
     }
 
     private var model: LlmModel? = null
-    private var chat: ChatSession? = null
 
-    private val llmBackend: LlmInferenceBackend by lazy {
-        val llm = LlmInference.createFromOptions(context, LlmInference.LlmInferenceOptions.builder()
-            .setModelPath(getModelPath())
-            .build())
-        LlmInferenceBackend(llm, GemmaFormatter())
-    }
+    private val options = LlmInference.LlmInferenceOptions.builder()
+        .setMaxTopK(64)
+        .setModelPath(getModelPath())
+        .build()
 
-    private val tool: Tool by lazy {
-        Tool.newBuilder()
-            .addFunctionDeclarations(switchThemeFunctionDeclaration)
-            .addFunctionDeclarations(increaseDeviceVolume)
-            .build()
-    }
-
-    private val generativeModel: GenerativeModel by lazy {
-        val systemInstruction =Content.newBuilder()
-            .setRole("system")
-            .addParts(Part.newBuilder().setText(
-                "You are a helpful assistant. You can call two functions:\n" +
-                        "1.switchTheme() to switch the app theme to the opposite one\n" +
-                        "2. increaseDeviceVolume, to increase the device volume by the given integer amount."
-            ))
-            .build()
-        GenerativeModel(llmBackend, systemInstruction, listOf(tool))
-    }
+    private var llmInference: LlmInference? = null
 
     override fun startChat() {
-        chat = generativeModel.startChat()
+        llmInference = LlmInference.createFromOptions(
+            context, LlmInference.LlmInferenceOptions.builder()
+                .setMaxTopK(64)
+                .setModelPath(getModelPath())
+                .build()
+        )
     }
 
     override fun sendMessage(prompt: String): Resource<LlmResponse> {
         return try {
-            chat?.let {
-                success { it.sendMessage(prompt).mapToLlmResponse() }
-            } ?: throw NoChatSessionException()
+            // val pl = ProgressListener<String> { partialResult, done -> TODO("Not yet implemented") }
+            // llmInference?.generateResponseAsync(prompt, object: ProgressListener<String>() {})
+            val response = llmInference?.generateResponse(prompt.concatInstructionsToPrompt()) ?: throw NoChatSessionException()
+            success { parseModelResponse(response).mapToLlmResponse() }
         } catch (e: Exception) {
             error { e }
         }
     }
 
-    private fun GenerateContentResponse.mapToLlmResponse(): LlmResponse {
-        val message = getCandidates(0).content.getParts(0)
+    data class FunctionCall(
+        val name: String,
+        val parameters: Map<String, Any>
+    )
 
-        return if (message.hasFunctionCall()) {
-            when(message.functionCall.name) {
-                EdgeFunctionUtils.SWITCH_THEME_FUN_DECLARATION -> {
-                    LlmResponse.SwitchThemeCall(message.functionCall.name)
+    fun parseModelResponse(responseJson: String): FunctionCall? {
+        return try {
+            val jsonObj = JSONObject(responseJson)
+
+            // Estrai il nome
+            val name = jsonObj.getString("name")
+
+            // Estrai i parametri
+            val parameters = mutableMapOf<String, Any>()
+            val paramsObj = jsonObj.optJSONObject("parameters")
+            paramsObj?.keys()?.forEach { key ->
+                // Converte valori numerici in Int se possibile
+                val parsedValue: Any = when (val value = paramsObj.get(key)) {
+                    is Int -> value
+                    is String -> value
+                    else -> value.toString()
                 }
-                EdgeFunctionUtils.INCREASE_VOLUME_FUN_DECLARATION -> {
-                    val incrementLevel = try {
-                        message.functionCall.args.fieldsMap[EdgeFunctionUtils.LEVEL_PROPERTY]?.stringValue?.toInt() ?: 1
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error while parsing level property", e)
-                        1
-                    }
-                    LlmResponse.IncreaseDeviceVolumeCall(
-                        message.functionCall.name,
-                        incrementLevel
-                    )
-                }
-                else -> {
-                    LlmResponse.UnknownFunctionCall("Unknown function call: ${message.functionCall.name}")
-                }
+                parameters[key] = parsedValue
             }
-        } else {
-            LlmResponse.Text(message.text)
+
+            FunctionCall(name, parameters)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+
+    private fun FunctionCall?.mapToLlmResponse(): LlmResponse {
+        if (this == null) {
+            return LlmResponse.UnknownFunctionCall("Unknown function call")
+        }
+
+        return when (this.name) {
+            EdgeFunctionUtils.SWITCH_THEME_FUN_DECLARATION -> {
+                LlmResponse.SwitchThemeCall
+            }
+
+            EdgeFunctionUtils.INCREASE_VOLUME_FUN_DECLARATION -> {
+                val incrementLevel: Int = try {
+                    (this.parameters[EdgeFunctionUtils.DEVICE_VOLUME_INCREMENT_PROPERTY] as? Int) ?: 0
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error while parsing level property", e)
+                    1
+                }
+                LlmResponse.IncreaseDeviceVolumeCall(
+                    incrementLevel
+                )
+            }
+
+            else -> {
+                LlmResponse.UnknownFunctionCall("Unknown function call: ${this.name}")
+            }
         }
     }
 
@@ -145,29 +153,46 @@ class InferenceModelRepositoryImpl @Inject constructor(
         }
     }
 
-    // Edge Functioning
-
-    private val switchThemeFunctionDeclaration = FunctionDeclaration.newBuilder()
-        .setName(EdgeFunctionUtils.SWITCH_THEME_FUN_DECLARATION)
-        .setDescription("Switch the current theme of the application to the opposite one")
-        .build()
-
-    private val increaseDeviceVolume = FunctionDeclaration.newBuilder()
-        .setName(EdgeFunctionUtils.INCREASE_VOLUME_FUN_DECLARATION)
-        .setDescription("Increase the device volume for the specified value. If not specified defaults to 1")
-        .setParameters(
-            Schema.newBuilder()
-                .setType(Type.OBJECT)
-                .putProperties(
-                    EdgeFunctionUtils.LEVEL_PROPERTY,
-                    Schema.newBuilder()
-                        .setType(Type.INTEGER)
-                        .setDescription("Volume increment (valid range is -10 to 10). Default 0.")
-                        .build()
-                )
-                .build()
-        )
-        .build()
+    fun String.concatInstructionsToPrompt(): String {
+        val functionCallingPrompt = "You have access to functions. If you decide to invoke any of the function(s),\n" +
+                "you MUST put it in the format of\n" +
+                "{\"name\": function name, \"parameters\": dictionary of argument name and its value}\n" +
+                "\n" +
+                "You SHOULD NOT include any other text in the response if you call a function\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"name\": \"increase_device_volume\",\n" +
+                "    \"description\": \"Increase the device volume by the quantity in the input\",\n" +
+                "    \"parameters\": {\n" +
+                "      \"type\": \"object\",\n" +
+                "      \"properties\": {\n" +
+                "        \"STEP\": {\n" +
+                "          \"type\": \"INTEGER\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"required\": [\n" +
+                "        \"STEP\"\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"name\": \"switch_app_theme\",\n" +
+                "    \"description\": \"Switch the current theme of the app to the opposite one\",\n" +
+                "    \"parameters\": {\n" +
+                "      \"type\": \"object\",\n" +
+                "      \"properties\": {\n" +
+                "        \"THEME\": {\n" +
+                "          \"type\": \"STRING\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"required\": [\n" +
+                "        \"THEME\"\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  }\n" +
+                "]"
+        return "$functionCallingPrompt\n${this}"
+    }
 
 
 }
