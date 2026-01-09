@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
+import it.spindox.data.model.FunctionCallEvent
 import it.spindox.data.model.SpeechEvent
 import it.spindox.data.repository.abstraction.InferenceModelRepository
 import it.spindox.data.voicecontroller.SpeechRecognizerController
+import it.spindox.domain.usecase.SendMessageUseCase
 import it.spindox.result.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +24,8 @@ import javax.inject.Inject
 class SpeechViewModel @Inject constructor(
     private val dispatcherProvider: DefaultDispatcherProvider,
     private val speechRecognizerController: SpeechRecognizerController,
-    private val inferenceModelRepository: InferenceModelRepository
+    private val inferenceModelRepository: InferenceModelRepository,
+    private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
     companion object {
@@ -67,6 +70,12 @@ class SpeechViewModel @Inject constructor(
                                 recognizedText = event.text
                             )
                         }
+
+                        // Send message to the model
+                        _uiState.value.recognizedText.takeUnless { it.isBlank() }?.let {
+                            Log.d(TAG, "Sending message: $it")
+                            sendMessageUseCase(it)
+                        }
                     }
 
                     is SpeechEvent.Partial -> {
@@ -91,6 +100,24 @@ class SpeechViewModel @Inject constructor(
 
                     is SpeechEvent.Rms -> {
                         onRmsChanged(event.rms)
+                    }
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            sendMessageUseCase.events.collect { event ->
+                when (event) {
+                    is FunctionCallEvent.SwitchTheme -> {
+                        Log.d(TAG, "Invoked Switch theme function!")
+                    }
+
+                    is FunctionCallEvent.IncreaseVolume -> {
+                        Log.d(TAG, "Invoked Increase volume function!")
+                    }
+
+                    is FunctionCallEvent.Error -> {
+                        // TODO("Implement this method")
                     }
                 }
             }
@@ -127,37 +154,18 @@ class SpeechViewModel @Inject constructor(
     }
 
     suspend fun initializeAsync() = withContext(Dispatchers.IO) {
-        try {
-            _uiState.update { oldState ->
-                oldState.copy(
-                    status = SpeechStatus.LOADING
-                )
-            }
+        _uiState.update { oldState ->
+            oldState.copy(
+                status = SpeechStatus.LOADING
+            )
+        }
 
-            val results = inferenceModelRepository.initialize()
-            if (results is Resource.Error) {
-                Log.e(TAG, "Error initializing inference model", results.throwable)
-                _uiState.update { oldState ->
-                    oldState.copy(
-                        status = SpeechStatus.ERROR,
-                        errorMessage = "Failed to initialize inference model"
-                    )
-                }
-            } else {
-                _uiState.update { oldState ->
-                    oldState.copy(
-                        status = SpeechStatus.SUCCESS
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "Error initializing inference model", e)
-            _uiState.update { oldState ->
-                oldState.copy(
-                    status = SpeechStatus.ERROR,
-                    errorMessage = "Failed to initialize inference model"
-                )
-            }
+        inferenceModelRepository.startChat()
+
+        _uiState.update { oldState ->
+            oldState.copy(
+                status = SpeechStatus.SUCCESS
+            )
         }
     }
 }
