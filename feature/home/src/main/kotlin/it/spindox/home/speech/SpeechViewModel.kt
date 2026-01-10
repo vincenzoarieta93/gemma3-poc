@@ -8,13 +8,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
 import it.spindox.data.model.FunctionCallEvent
 import it.spindox.data.model.SpeechEvent
+import it.spindox.data.model.ThemeAppearance
 import it.spindox.data.repository.abstraction.InferenceModelRepository
 import it.spindox.data.voicecontroller.SpeechRecognizerController
+import it.spindox.domain.usecase.GetThemeUseCase
 import it.spindox.domain.usecase.SendMessageUseCase
-import it.spindox.result.Resource
+import it.spindox.domain.usecase.SetThemeUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,14 +30,21 @@ class SpeechViewModel @Inject constructor(
     private val dispatcherProvider: DefaultDispatcherProvider,
     private val speechRecognizerController: SpeechRecognizerController,
     private val inferenceModelRepository: InferenceModelRepository,
-    private val sendMessageUseCase: SendMessageUseCase
+    private val sendMessageUseCase: SendMessageUseCase,
+    private val getThemeUseCase: GetThemeUseCase,
+    private val setThemeUseCase: SetThemeUseCase,
 ) : ViewModel() {
 
     companion object {
         private const val TAG: String = "SpeechViewModel"
     }
 
+    private val currentTheme: MutableStateFlow<ThemeAppearance> = MutableStateFlow(ThemeAppearance.LIGHT)
+    private val _speechRouteUiEvent: MutableSharedFlow<SpeechUiEvent> = MutableSharedFlow()
+    val speechRouteUiEvent: SharedFlow<SpeechUiEvent> = _speechRouteUiEvent
+
     init {
+        getTheme()
         viewModelScope.launch {
             speechRecognizerController.events.collect { event ->
                 when (event) {
@@ -110,14 +122,17 @@ class SpeechViewModel @Inject constructor(
                 when (event) {
                     is FunctionCallEvent.SwitchTheme -> {
                         Log.d(TAG, "Invoked Switch theme function!")
+                        toggleTheme()
+                        _speechRouteUiEvent.emit(SpeechUiEvent.ShowSnackbar("Theme changed successfully"))
                     }
 
-                    is FunctionCallEvent.IncreaseVolume -> {
-                        Log.d(TAG, "Invoked Increase volume function!")
+                    is FunctionCallEvent.NavigateToDestination -> {
+                        Log.d(TAG, "Navigate to destination ${event.destination}")
+                        _speechRouteUiEvent.emit(SpeechUiEvent.NavigateToDestination(event.destination))
                     }
 
                     is FunctionCallEvent.Error -> {
-                        // TODO("Implement this method")
+                        _speechRouteUiEvent.tryEmit(SpeechUiEvent.ShowSnackbar(event.message))
                     }
                 }
             }
@@ -165,6 +180,26 @@ class SpeechViewModel @Inject constructor(
         _uiState.update { oldState ->
             oldState.copy(
                 status = SpeechStatus.SUCCESS
+            )
+        }
+    }
+
+    private fun getTheme() {
+        viewModelScope.launch {
+            getThemeUseCase().collectLatest { theme ->
+                currentTheme.value = theme
+            }
+        }
+    }
+
+    private fun toggleTheme() {
+        viewModelScope.launch {
+            setThemeUseCase(
+                if (currentTheme.value == ThemeAppearance.DARK) {
+                    ThemeAppearance.LIGHT
+                } else {
+                    ThemeAppearance.DARK
+                }
             )
         }
     }

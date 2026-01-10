@@ -26,9 +26,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val dispatcherProvider: DefaultDispatcherProvider,
     private val getAllModelsUseCase: GetAllModelsUseCase,
-    private val setThemeUseCase: SetThemeUseCase,
-    private val setModelUseCase: SetModelUseCase,
-    private val getThemeUseCase: GetThemeUseCase,
+    private val setModelUseCase: SetModelUseCase
 ) : ViewModel() {
 
     private val _uiState by lazy { MutableStateFlow(MainState()) }
@@ -41,16 +39,7 @@ class MainViewModel @Inject constructor(
     )
 
     init {
-        getTheme()
         getAllModels()
-    }
-
-    private fun getTheme() {
-        viewModelScope.launch {
-            getThemeUseCase().collectLatest { theme ->
-                _uiState.update { it.copy(isDarkTheme = theme == ThemeAppearance.DARK) }
-            }
-        }
     }
 
     private fun getAllModels() = viewModelScope.launch(dispatcherProvider.io) {
@@ -93,14 +82,6 @@ class MainViewModel @Inject constructor(
 
         if (selectedLlmModel != null) {
             setModelUseCase(selectedLlmModel)
-        }
-    }
-
-    private fun toggleTheme() {
-        viewModelScope.launch {
-            setThemeUseCase(
-                if (_uiState.value.isDarkTheme) ThemeAppearance.LIGHT else ThemeAppearance.DARK
-            )
         }
     }
 }

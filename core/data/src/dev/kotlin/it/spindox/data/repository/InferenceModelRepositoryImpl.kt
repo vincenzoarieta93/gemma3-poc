@@ -27,12 +27,6 @@ class InferenceModelRepositoryImpl @Inject constructor(
     }
 
     private var model: LlmModel? = null
-
-    private val options = LlmInference.LlmInferenceOptions.builder()
-        .setMaxTopK(64)
-        .setModelPath(getModelPath())
-        .build()
-
     private var llmInference: LlmInference? = null
 
     override fun startChat() {
@@ -98,15 +92,15 @@ class InferenceModelRepositoryImpl @Inject constructor(
                 LlmResponse.SwitchThemeCall
             }
 
-            EdgeFunctionUtils.INCREASE_VOLUME_FUN_DECLARATION -> {
-                val incrementLevel: Int = try {
-                    (this.parameters[EdgeFunctionUtils.DEVICE_VOLUME_INCREMENT_PROPERTY] as? Int) ?: 0
+            EdgeFunctionUtils.NAVIGATE_TO_DESTINATION_FUN_DECLARATION -> {
+                val destination: String = try {
+                    (this.parameters[EdgeFunctionUtils.DESTINATION_PROPERTY] as? String).orEmpty()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error while parsing level property", e)
-                    1
+                    Log.e(TAG, "Error while parsing destination property", e)
+                    ""
                 }
-                LlmResponse.IncreaseDeviceVolumeCall(
-                    incrementLevel
+                LlmResponse.NavigateToDestination(
+                    destination
                 )
             }
 
@@ -161,17 +155,17 @@ class InferenceModelRepositoryImpl @Inject constructor(
                 "You SHOULD NOT include any other text in the response if you call a function\n" +
                 "[\n" +
                 "  {\n" +
-                "    \"name\": \"increase_device_volume\",\n" +
-                "    \"description\": \"Increase the device volume by the quantity in the input\",\n" +
+                "    \"name\": \"navigate_to_destination\",\n" +
+                "    \"description\": \"Navigate to a specific destination in the app\",\n" +
                 "    \"parameters\": {\n" +
                 "      \"type\": \"object\",\n" +
                 "      \"properties\": {\n" +
-                "        \"STEP\": {\n" +
-                "          \"type\": \"INTEGER\"\n" +
+                "        \"DESTINATION\": {\n" +
+                "          \"type\": \"STRING\"\n" +
                 "        }\n" +
                 "      },\n" +
                 "      \"required\": [\n" +
-                "        \"STEP\"\n" +
+                "        \"DESTINATION\"\n" +
                 "      ]\n" +
                 "    }\n" +
                 "  },\n" +

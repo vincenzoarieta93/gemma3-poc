@@ -59,7 +59,9 @@ fun MainNavigation(
         }
 
         composable(AppRoute.SpeechScreen.route) {
-            SpeechRoute()
+            SpeechRoute(
+                snackbarHostState = snackbarHostState,
+            )
         }
     }
 }

@@ -3,7 +3,6 @@ package it.spindox.domain.usecase
 import it.spindox.data.model.FunctionCallEvent
 import it.spindox.data.model.LlmResponse
 import it.spindox.data.repository.abstraction.InferenceModelRepository
-import it.spindox.data.utils.EdgeFunctionUtils
 import it.spindox.result.Resource
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,8 +29,8 @@ class SendMessageUseCase @Inject constructor(
                     _events.emit(FunctionCallEvent.SwitchTheme)
                 }
 
-                is LlmResponse.IncreaseDeviceVolumeCall -> {
-                    _events.emit(FunctionCallEvent.IncreaseVolume(llmResponse.level))
+                is LlmResponse.NavigateToDestination -> {
+                    _events.emit(FunctionCallEvent.NavigateToDestination(llmResponse.destination))
                 }
 
                 is LlmResponse.UnknownFunctionCall -> {

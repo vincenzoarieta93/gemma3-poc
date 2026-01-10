@@ -28,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +50,7 @@ import it.spindox.home.preparation.ErrorMessage
 
 @Composable
 fun SpeechRoute(
+    snackbarHostState: SnackbarHostState,
     viewModel: SpeechViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -64,7 +66,7 @@ fun SpeechRoute(
     val events = SpeechScreenEvent(
         onStartListening = { viewModel.startListening() },
         onStopListening = { viewModel.stopListening() },
-        onRequestPermission = { launcher.launch(permission) }
+        onRequestPermission = { launcher.launch(permission) },
     )
 
     LaunchedEffect(Unit) {
@@ -79,6 +81,21 @@ fun SpeechRoute(
 
     LaunchedEffect(Unit) {
         viewModel.initializeAsync()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.speechRouteUiEvent.collect { event ->
+            when (event) {
+                is SpeechUiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message, withDismissAction = true
+                    )
+                }
+                is SpeechUiEvent.NavigateToDestination -> {
+                    // TODO("Implement this method")
+                }
+            }
+        }
     }
 
     SpeechScreen(
