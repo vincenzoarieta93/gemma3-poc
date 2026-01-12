@@ -66,7 +66,7 @@ class LoginActivity : ComponentActivity() {
                 // Launch the OAuth login page
                 val authIntent = authService.getAuthorizationRequestIntent(authRequest)
                 startActivity(authIntent)
-
+                finish()
             } catch (e: Exception) {
                 Log.e("LoginActivity", "Error during HuggingFace login", e)
                 Toast.makeText(

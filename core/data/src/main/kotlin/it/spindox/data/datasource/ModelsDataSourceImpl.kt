@@ -7,6 +7,18 @@ import javax.inject.Inject
 
 class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
 
+    private val GEMMA3_270M_IT_CPU = LlmModel(
+        name = "GEMMA3_270M_IT_CPU",
+        path = "/data/local/tmp/gemma3-270m-it-q8.task",
+        url = "https://huggingface.co/litert-community/gemma-3-270m-it/resolve/main/gemma3-270m-it-q8.task",
+        licenseUrl = "https://huggingface.co/litert-community/gemma-3-270m-it",
+        needsAuth = true,
+        preferredBackend = Backend.CPU,
+        thinking = false,
+        temperature = 1.0f,
+        topK = 64,
+        topP = 0.95f
+    )
     private val GEMMA3_1B_IT_CPU = LlmModel(
         name = "GEMMA3_1B_IT_CPU",
         path = "/data/local/tmp/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
@@ -70,42 +82,13 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
         topP = 0.9f
     )
 
-    private val LLAMA_3_2_3B_INSTRUCT = LlmModel(
-        name = "LLAMA_3_2_3B_INSTRUCT",
-        path = "/data/local/tmp/Llama-3.2-3B-Instruct_multi-prefill-seq_q8_ekv1280.task",
-        url = "https://huggingface.co/litert-community/Llama-3.2-3B-Instruct/resolve/main/Llama-3.2-3B-Instruct_multi-prefill-seq_q8_ekv1280.task",
-        licenseUrl = "https://huggingface.co/litert-community/Llama-3.2-3B-Instruct",
-        needsAuth = true,
-        preferredBackend = Backend.CPU,
-        thinking = false,
-        temperature = 0.6f,
-        topK = 64,
-        topP = 0.9f,
-    )
-
-    private val PHI_4_MINI_INSTRUCT = LlmModel(
-        name = "PHI_4_MINI_INSTRUCT",
-        path = "/data/local/tmp/Phi-4-mini-instruct_multi-prefill-seq_q8_ekv1280.task",
-        url = "https://huggingface.co/litert-community/Phi-4-mini-instruct/resolve/main/Phi-4-mini-instruct_multi-prefill-seq_q8_ekv1280.task",
-        licenseUrl = "",
-        needsAuth = false,
-        preferredBackend = Backend.CPU,
-        thinking = false,
-        temperature = 0.6f,
-        topK = 40,
-        topP = 1.0f
-    )
-
     override suspend fun getAllModels(): Resource<List<LlmModel>> {
         return Resource.Success(
             listOf(
+                GEMMA3_270M_IT_CPU,
                 GEMMA3_1B_IT_CPU,
                 GEMMA_3_1B_IT_GPU,
                 GEMMA_2_2B_IT_CPU,
-                DEEPSEEK_R1_DISTILL_QWEN_1_5_B,
-                LLAMA_3_2_1B_INSTRUCT,
-                LLAMA_3_2_3B_INSTRUCT,
-                PHI_4_MINI_INSTRUCT
             )
         )
     }

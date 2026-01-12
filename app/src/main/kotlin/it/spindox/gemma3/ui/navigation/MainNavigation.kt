@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
-import it.spindox.home.main.MainPage
+import it.spindox.home.main.MainRoute
 import it.spindox.home.preparation.PreparationRoute
 import it.spindox.home.speech.SpeechRoute
 import it.spindox.navigation.AppRoute
@@ -23,7 +23,7 @@ fun MainNavigation(
         startDestination = startDestination ?: AppRoute.ModelSelectionScreen.route
     ) {
         composable(AppRoute.ModelSelectionScreen.route) {
-            MainPage(
+            MainRoute(
                 onModelSelected = {
                     navController.navigate(AppRoute.PreparationScreen.route) {
                         launchSingleTop = true

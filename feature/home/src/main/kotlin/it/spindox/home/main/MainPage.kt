@@ -33,7 +33,7 @@ import it.spindox.result.loading
 import it.spindox.designsystem.theme.MainAppTheme
 
 @Composable
-fun MainPage(
+fun MainRoute(
     viewModel: MainViewModel = hiltViewModel(),
     onModelSelected: () -> Unit,
 ) {
@@ -125,7 +125,7 @@ private fun ItemCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = model.name,
+                    text = model.displayName,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)

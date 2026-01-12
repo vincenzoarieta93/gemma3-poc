@@ -19,7 +19,10 @@ data class LlmModelUi (
     val topK: Int,
     val temperature: Float?,
     val needsAuth: Boolean = false
-)
+) {
+    val displayName: String
+        get() =  name.replace("_", " ")
+}
 
 val sampleMainState = MainState (
     modelsList = success {
