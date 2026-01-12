@@ -3,8 +3,8 @@ package it.spindox.gemma3.ui.navigation
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import it.spindox.home.main.MainRoute
 import it.spindox.home.preparation.PreparationRoute
 import it.spindox.home.speech.SpeechRoute
@@ -26,6 +26,7 @@ fun MainNavigation(
             MainRoute(
                 onModelSelected = {
                     navController.navigate(AppRoute.PreparationScreen.route) {
+                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = false }
                         launchSingleTop = true
                     }
                 }
@@ -36,13 +37,13 @@ fun MainNavigation(
                 snackbarHostState = snackbarHostState,
                 onModelLoaded = {
                     navController.navigate(AppRoute.SpeechScreen.route) {
-                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = false }
+                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onDownloadCancelled = {
                     navController.navigate(AppRoute.ModelSelectionScreen.route) {
-                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
+                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = false }
                         launchSingleTop = true
                     }
                 },
@@ -51,7 +52,7 @@ fun MainNavigation(
                 },
                 onGoBack = {
                     navController.navigate(AppRoute.ModelSelectionScreen.route) {
-                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
+                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = false }
                         launchSingleTop = true
                     }
                 }
@@ -65,7 +66,7 @@ fun MainNavigation(
                     when (destinationRoute) {
                         AppRoute.ModelSelectionScreen ->
                             navController.navigate(AppRoute.ModelSelectionScreen.route) {
-                                popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
+                                popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = false }
                                 launchSingleTop = true
                             }
 

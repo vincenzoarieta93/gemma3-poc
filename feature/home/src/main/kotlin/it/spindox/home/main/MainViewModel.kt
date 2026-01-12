@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
+import it.spindox.data.helper.ModelPathHelper
 import it.spindox.data.model.LlmModel
 import it.spindox.domain.usecase.GetAllModelsUseCase
 import it.spindox.result.Resource
@@ -23,7 +24,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val dispatcherProvider: DefaultDispatcherProvider,
     private val getAllModelsUseCase: GetAllModelsUseCase,
-    private val setModelUseCase: SetModelUseCase
+    private val setModelUseCase: SetModelUseCase,
+    private val modelPathHelper: ModelPathHelper
 ) : ViewModel() {
 
     private val _uiState by lazy { MutableStateFlow(MainState()) }
@@ -59,7 +61,8 @@ class MainViewModel @Inject constructor(
                                         temperature = item.temperature,
                                         topK = item.topK,
                                         topP = item.topP,
-                                        needsAuth = item.needsAuth
+                                        needsAuth = item.needsAuth,
+                                        isDownloaded = modelPathHelper.doesModelExist(item)
                                     )
                                 }
                             }

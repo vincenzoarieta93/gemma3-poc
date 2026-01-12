@@ -4,8 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
-import com.google.mediapipe.tasks.genai.llminference.ProgressListener
-import it.spindox.data.exceptions.NoChatSessionException
+import it.spindox.data.helper.ModelPathHelper
 import it.spindox.data.model.LlmModel
 import it.spindox.data.model.LlmResponse
 import it.spindox.data.repository.abstraction.InferenceModelRepository
@@ -24,7 +23,8 @@ import java.io.File
 import javax.inject.Inject
 
 class InferenceModelRepositoryImpl @Inject constructor(
-    private val context: Context
+    private val context: Context,
+    private val modelPathHelper: ModelPathHelper
 ) : InferenceModelRepository {
 
     companion object {
@@ -37,7 +37,9 @@ class InferenceModelRepositoryImpl @Inject constructor(
     override fun startChat() {
         llmInference = LlmInference.createFromOptions(
             context,
-            LlmInference.LlmInferenceOptions.builder().setMaxTopK(64).setModelPath(getModelPath())
+            LlmInference.LlmInferenceOptions.builder().setMaxTopK(64)
+                .apply { model?.preferredBackend?.let { setPreferredBackend(it) } }
+                .setModelPath(getModelPath())
                 .build()
         )
     }
@@ -160,17 +162,19 @@ class InferenceModelRepositoryImpl @Inject constructor(
     }
 
     override fun getModelPathFromUrl(): String {
-        return model?.url?.takeUnless { it.isBlank() }?.let { Uri.parse(it).lastPathSegment }
-            ?.takeUnless { it.isBlank() }?.let { File(context.filesDir, it).absolutePath }.orEmpty()
+        return model?.let {
+            modelPathHelper.getModelPathFromUrl(it)
+        }.orEmpty()
     }
 
     override fun getModelPath(): String {
-        return model?.path?.takeUnless(String::isBlank)?.takeIf { File(it).exists() }
-            ?: getModelPathFromUrl()
+        return model?.let {
+            modelPathHelper.getModelPath(it)
+        }.orEmpty()
     }
 
     override fun doesModelExist(): Boolean {
-        return File(getModelPath()).exists()
+        return model?.let { modelPathHelper.doesModelExist(it) } ?: false
     }
 
     override suspend fun deleteDownloadedModel() {

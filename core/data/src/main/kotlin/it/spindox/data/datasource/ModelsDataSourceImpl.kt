@@ -33,7 +33,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
     )
     private val GEMMA_3_1B_IT_GPU = LlmModel(
         name = "GEMMA_3_1B_IT_GPU",
-        path = "/data/local/tmp/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
+        path = "/data/local/tmp/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048_gpu.task",
         url = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
         licenseUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT",
         needsAuth = true,

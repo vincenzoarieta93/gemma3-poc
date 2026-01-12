@@ -12,11 +12,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -130,6 +135,9 @@ private fun ItemCard(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
+
+                // ── Download status chip ─────────────────
+                DownloadChip(model)
             }
 
             // ── Model info row ─────────────────────────
@@ -159,6 +167,39 @@ private fun ItemCard(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun DownloadChip(model: LlmModelUi) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (model.isDownloaded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            val icon =
+                if (model.isDownloaded) Icons.Default.Check else Icons.Default.Download
+            val tint =
+                if (model.isDownloaded) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(16.dp)
+            )
+
+            Text(
+                text = if (model.isDownloaded) "Downloaded" else "Download",
+                style = MaterialTheme.typography.labelSmall,
+                color = tint
+            )
         }
     }
 }
