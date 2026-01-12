@@ -10,7 +10,6 @@ interface InferenceModelRepository {
     fun setModel(llmModel: LlmModel)
     fun getModel(): LlmModel?
     fun resetModel()
-    fun getModelPathFromUrl(): String
     fun getModelPath(): String
     fun doesModelExist(): Boolean
 

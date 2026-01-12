@@ -37,7 +37,8 @@ class InferenceModelRepositoryImpl @Inject constructor(
     override fun startChat() {
         llmInference = LlmInference.createFromOptions(
             context,
-            LlmInference.LlmInferenceOptions.builder().setMaxTopK(64)
+            LlmInference.LlmInferenceOptions.builder()
+                .setMaxTopK(64)
                 .apply { model?.preferredBackend?.let { setPreferredBackend(it) } }
                 .setModelPath(getModelPath())
                 .build()
@@ -161,12 +162,6 @@ class InferenceModelRepositoryImpl @Inject constructor(
         model = null
     }
 
-    override fun getModelPathFromUrl(): String {
-        return model?.let {
-            modelPathHelper.getModelPathFromUrl(it)
-        }.orEmpty()
-    }
-
     override fun getModelPath(): String {
         return model?.let {
             modelPathHelper.getModelPath(it)
@@ -180,7 +175,7 @@ class InferenceModelRepositoryImpl @Inject constructor(
     override suspend fun deleteDownloadedModel() {
         withContext(Dispatchers.IO) {
             try {
-                val outputFile = File(getModelPathFromUrl())
+                val outputFile = File(getModelPath())
                 if (outputFile.exists()) {
                     outputFile.delete()
                 }

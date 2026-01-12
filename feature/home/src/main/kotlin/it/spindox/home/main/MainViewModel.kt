@@ -7,6 +7,7 @@ import it.spindox.coroutine.DefaultDispatcherProvider
 import it.spindox.data.helper.ModelPathHelper
 import it.spindox.data.model.LlmModel
 import it.spindox.domain.usecase.GetAllModelsUseCase
+import it.spindox.domain.usecase.GetSelectedModelUseCase
 import it.spindox.result.Resource
 import it.spindox.result.loading
 import it.spindox.result.success
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val dispatcherProvider: DefaultDispatcherProvider,
     private val getAllModelsUseCase: GetAllModelsUseCase,
+    private val getSelectedModelUseCase: GetSelectedModelUseCase,
     private val setModelUseCase: SetModelUseCase,
     private val modelPathHelper: ModelPathHelper
 ) : ViewModel() {
@@ -74,6 +76,26 @@ class MainViewModel @Inject constructor(
 
                         is Resource.Loading -> {
                             loading()
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun onModelDownloaded() {
+        viewModelScope.launch {
+            val selectedModel = getSelectedModelUseCase()?.model ?: return@launch
+            val oldModelsList = (_uiState.value.modelsList as? Resource.Success)?.data ?: return@launch
+            _uiState.update { oldState ->
+                oldState.copy(
+                    modelsList = success {
+                        oldModelsList.map { oldModel ->
+                            if (oldModel.name == selectedModel.name) {
+                                oldModel.copy(isDownloaded = true)
+                            } else {
+                                oldModel
+                            }
                         }
                     }
                 )

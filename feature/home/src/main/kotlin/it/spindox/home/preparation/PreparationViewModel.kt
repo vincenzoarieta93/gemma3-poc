@@ -67,11 +67,11 @@ class PreparationViewModel @Inject constructor(
                     return@launch
                 }
 
-                if (selectedModel.modelPathFromUrl.isBlank()) {
+                if (selectedModel.modelPath.isBlank()) {
                     onDownloadFailed(MissingUrlException())
                     return@launch
                 } else {
-                    downloadLlmModelUseCase(selectedModel.model, selectedModel.modelPathFromUrl).collect { downloadState ->
+                    downloadLlmModelUseCase(selectedModel.model, selectedModel.modelPath).collect { downloadState ->
                         when (downloadState) {
                             is LlmModelDownloadState.DownloadInProgress -> {
                                 _stateUi.update { oldState ->

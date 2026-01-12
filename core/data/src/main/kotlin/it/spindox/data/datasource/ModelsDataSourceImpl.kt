@@ -9,7 +9,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
 
     private val GEMMA3_270M_IT_CPU = LlmModel(
         name = "GEMMA3_270M_IT_CPU",
-        path = "/data/local/tmp/gemma3-270m-it-q8.task",
+        path = "gemma3-270m-it-q8.task",
         url = "https://huggingface.co/litert-community/gemma-3-270m-it/resolve/main/gemma3-270m-it-q8.task",
         licenseUrl = "https://huggingface.co/litert-community/gemma-3-270m-it",
         needsAuth = true,
@@ -21,7 +21,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
     )
     private val GEMMA3_1B_IT_CPU = LlmModel(
         name = "GEMMA3_1B_IT_CPU",
-        path = "/data/local/tmp/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
+        path = "Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
         url = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
         licenseUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT",
         needsAuth = true,
@@ -33,7 +33,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
     )
     private val GEMMA_3_1B_IT_GPU = LlmModel(
         name = "GEMMA_3_1B_IT_GPU",
-        path = "/data/local/tmp/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048_gpu.task",
+        path = "Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048_gpu.task",
         url = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/Gemma3-1B-IT_multi-prefill-seq_q8_ekv2048.task",
         licenseUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT",
         needsAuth = true,
@@ -45,7 +45,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
     )
     private val GEMMA_2_2B_IT_CPU = LlmModel(
         name = "GEMMA_2_2B_IT_CPU",
-        path = "/data/local/tmp/Gemma2-2B-IT_multi-prefill-seq_q8_ekv1280.task",
+        path = "Gemma2-2B-IT_multi-prefill-seq_q8_ekv1280.task",
         url = "https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/Gemma2-2B-IT_multi-prefill-seq_q8_ekv1280.task",
         licenseUrl = "https://huggingface.co/litert-community/Gemma2-2B-IT",
         needsAuth = true,
@@ -58,7 +58,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
 
     private val DEEPSEEK_R1_DISTILL_QWEN_1_5_B = LlmModel(
         name = "DEEPSEEK_R1_DISTILL_QWEN_1_5_B",
-        path = "/data/local/tmp/DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv1280.task",
+        path = "DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv1280.task",
         url = "https://huggingface.co/litert-community/DeepSeek-R1-Distill-Qwen-1.5B/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv1280.task",
         licenseUrl = "",
         needsAuth = false,
@@ -71,7 +71,7 @@ class ModelsDataSourceImpl @Inject constructor() : ModelsDataSource {
 
     private val LLAMA_3_2_1B_INSTRUCT = LlmModel(
         name = "LLAMA_3_2_1B_INSTRUCT",
-        path = "/data/local/tmp/Llama-3.2-1B-Instruct_multi-prefill-seq_q8_ekv1280.task",
+        path = "Llama-3.2-1B-Instruct_multi-prefill-seq_q8_ekv1280.task",
         url = "https://huggingface.co/litert-community/Llama-3.2-1B-Instruct/resolve/main/Llama-3.2-1B-Instruct_multi-prefill-seq_q8_ekv1280.task",
         licenseUrl = "https://huggingface.co/litert-community/Llama-3.2-1B-Instruct",
         needsAuth = true,

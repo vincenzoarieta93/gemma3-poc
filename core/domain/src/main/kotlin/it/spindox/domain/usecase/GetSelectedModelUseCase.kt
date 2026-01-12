@@ -9,7 +9,7 @@ class GetSelectedModelUseCase @Inject constructor(
 ) {
     operator fun invoke(): LlmModelWithFilePath? {
         return repository.getModel()?.let {
-            LlmModelWithFilePath(it, repository.getModelPath(), repository.getModelPathFromUrl())
+            LlmModelWithFilePath(it, repository.getModelPath())
         }
     }
 }
