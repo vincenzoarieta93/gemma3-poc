@@ -6,12 +6,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
 import it.spindox.data.model.LlmModel
 import it.spindox.domain.usecase.GetAllModelsUseCase
-import it.spindox.domain.usecase.GetThemeUseCase
-import it.spindox.domain.usecase.SetThemeUseCase
 import it.spindox.result.Resource
 import it.spindox.result.loading
 import it.spindox.result.success
-import it.spindox.data.model.ThemeAppearance
 import it.spindox.domain.usecase.SetModelUseCase
 import it.spindox.result.map
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +55,11 @@ class MainViewModel @Inject constructor(
                                     LlmModelUi(
                                         name = item.name,
                                         url = item.url,
-                                        preferredBackend = item.preferredBackend
+                                        preferredBackend = item.preferredBackend,
+                                        temperature = item.temperature,
+                                        topK = item.topK,
+                                        topP = item.topP,
+                                        needsAuth = item.needsAuth
                                     )
                                 }
                             }

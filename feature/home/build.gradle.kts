@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
+    implementation(libs.androidx.room.ktx)
 
     ksp(libs.hilt.compiler)
     implementation(libs.bundles.hilt)

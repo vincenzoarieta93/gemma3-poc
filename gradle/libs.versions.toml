@@ -38,6 +38,7 @@ materialIconExtended = "1.7.8"
 commonmark = "1.0.0-alpha03"
 richtext = "1.0.0-alpha03"
 openidAppAuth = "0.11.1"
+roomKtx = "2.8.4"
 
 
 [libraries]
@@ -96,6 +97,7 @@ openid-appauth = { group = "net.openid", name = "appauth", version.ref = "openid
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
