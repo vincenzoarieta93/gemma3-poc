@@ -36,7 +36,7 @@ fun MainNavigation(
                 snackbarHostState = snackbarHostState,
                 onModelLoaded = {
                     navController.navigate(AppRoute.SpeechScreen.route) {
-                        popUpTo(AppRoute.PreparationScreen.route) { inclusive = true }
+                        popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = false }
                         launchSingleTop = true
                     }
                 },
