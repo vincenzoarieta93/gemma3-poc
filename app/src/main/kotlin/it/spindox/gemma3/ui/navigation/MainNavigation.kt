@@ -64,7 +64,7 @@ fun MainNavigation(
                 onNavigateToDestination = { destinationRoute ->
                     when (destinationRoute) {
                         AppRoute.ModelSelectionScreen ->
-                            navController.navigate(destinationRoute) {
+                            navController.navigate(AppRoute.ModelSelectionScreen.route) {
                                 popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
                                 launchSingleTop = true
                             }

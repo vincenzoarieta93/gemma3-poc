@@ -15,6 +15,7 @@ import it.spindox.data.voicecontroller.SpeechRecognizerController
 import it.spindox.domain.usecase.GetThemeUseCase
 import it.spindox.domain.usecase.SendMessageUseCase
 import it.spindox.domain.usecase.SetThemeUseCase
+import it.spindox.navigation.AppRoute
 import it.spindox.result.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
@@ -141,7 +142,9 @@ class SpeechViewModel @Inject constructor(
                         is Resource.Success -> {
                             when (val llmResponse = response.data) {
                                 is LlmResponse.Text -> {
-                                    llmResponse.text
+                                    // No function detected by the model. Do nothing
+                                    Log.d(TAG, "Got text: ${llmResponse.text}")
+
                                 }
 
                                 is LlmResponse.SwitchThemeCall -> {
@@ -151,10 +154,23 @@ class SpeechViewModel @Inject constructor(
 
                                 is LlmResponse.NavigateToDestination -> {
                                     Log.d(TAG, "Navigate to destination ${llmResponse.destination}")
-                                    _speechRouteUiEvent.emit(
-                                        SpeechUiEvent.NavigateToDestination(
-                                            llmResponse.destination
+                                    val appRoute = if (llmResponse.destination.contains("home", true)) {
+                                        AppRoute.ModelSelectionScreen.route
+                                    } else {
+                                        null
+                                    }
+
+                                    appRoute?.let {
+                                        _speechRouteUiEvent.emit(
+                                            SpeechUiEvent.NavigateToDestination(it)
                                         )
+                                    }
+                                }
+
+                                is LlmResponse.OpenWiFiSettingsScreen -> {
+                                    Log.d(TAG, "Navigate to wi-fi settings")
+                                    _speechRouteUiEvent.emit(
+                                        SpeechUiEvent.OpenWiFiSettingsScreen
                                     )
                                 }
 

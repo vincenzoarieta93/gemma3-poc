@@ -126,6 +126,17 @@ class InferenceModelRepositoryImpl @Inject constructor(
                 )
             }
 
+            EdgeFunctionUtils.OPEN_SYSTEM_SETTINGS_FUN_DECLARATION -> {
+                val settingsScreen: String = try {
+                    (this.parameters[EdgeFunctionUtils.SETTINGS_SCREEN_PROPERTY] as? String).orEmpty()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error while parsing settings screen property", e)
+                    ""
+                }
+                Log.d(TAG, "Settings screen: $settingsScreen")
+                LlmResponse.OpenWiFiSettingsScreen
+            }
+
             else -> {
                 LlmResponse.UnknownFunctionCall("Unknown function call: ${this.name}")
             }
@@ -170,8 +181,58 @@ class InferenceModelRepositoryImpl @Inject constructor(
     }
 
     fun String.concatInstructionsToPrompt(): String {
-        val functionCallingPrompt =
-            "You have access to functions. If you decide to invoke any of the function(s),\n" + "you MUST put it in the format of\n" + "{\"name\": function name, \"parameters\": dictionary of argument name and its value}\n" + "\n" + "You SHOULD NOT include any other text in the response if you call a function\n" + "[\n" + "  {\n" + "    \"name\": \"navigate_to_destination\",\n" + "    \"description\": \"Navigate to a specific destination of the app or device\",\n" + "    \"parameters\": {\n" + "      \"type\": \"object\",\n" + "      \"properties\": {\n" + "        \"DESTINATION\": {\n" + "          \"type\": \"STRING\"\n" + "        }\n" + "      },\n" + "      \"required\": [\n" + "        \"DESTINATION\"\n" + "      ]\n" + "    }\n" + "  },\n" + "  {\n" + "    \"name\": \"switch_app_theme\",\n" + "    \"description\": \"Switch the current theme of the app to the opposite one\",\n" + "    \"parameters\": {\n" + "      \"type\": \"object\",\n" + "      \"properties\": {\n" + "        \"THEME\": {\n" + "          \"type\": \"STRING\"\n" + "        }\n" + "      },\n" + "      \"required\": [\n" + "        \"THEME\"\n" + "      ]\n" + "    }\n" + "  }\n" + "]"
+        val functionCallingPrompt = "You have access to functions. If you decide to invoke any of the function(s),\n" +
+                "you MUST put it in the format of\n" +
+                "{\"name\": function name, \"parameters\": dictionary of argument name and its value}\n" +
+                "\n" +
+                "You SHOULD NOT include any other text in the response if you call a function\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"name\": \"navigate_to_destination\",\n" +
+                "    \"description\": \"Navigate to a specific destination in the app\",\n" +
+                "    \"parameters\": {\n" +
+                "      \"type\": \"object\",\n" +
+                "      \"properties\": {\n" +
+                "        \"DESTINATION\": {\n" +
+                "          \"type\": \"STRING\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"required\": [\n" +
+                "        \"DESTINATION\"\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"name\": \"switch_app_theme\",\n" +
+                "    \"description\": \"Switch the current theme of the app to the opposite one\",\n" +
+                "    \"parameters\": {\n" +
+                "      \"type\": \"object\",\n" +
+                "      \"properties\": {\n" +
+                "        \"THEME\": {\n" +
+                "          \"type\": \"STRING\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"required\": [\n" +
+                "        \"THEME\"\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"name\": \"open_system_settings_screen\",\n" +
+                "    \"description\": \"Open a specific settings screen of the system\",\n" +
+                "    \"parameters\": {\n" +
+                "      \"type\": \"object\",\n" +
+                "      \"properties\": {\n" +
+                "        \"SETTINGS_SCREEN\": {\n" +
+                "          \"type\": \"STRING\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"required\": [\n" +
+                "        \"SETTINGS_SCREEN\"\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "]"
         return "$functionCallingPrompt\n${this}"
     }
 

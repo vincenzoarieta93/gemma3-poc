@@ -98,11 +98,15 @@ fun SpeechRoute(
                 is SpeechUiEvent.NavigateToDestination -> {
                     if (event.destination == AppRoute.ModelSelectionScreen.route) {
                         onNavigateToDestination(AppRoute.ModelSelectionScreen)
-                    } else if (event.destination == "Wi-Fi") {
-                        context.startActivity(
-                            Intent(Settings.ACTION_WIFI_SETTINGS)
-                        )
+                    } else {
+                        // Unknown destination
                     }
+                }
+
+                is SpeechUiEvent.OpenWiFiSettingsScreen -> {
+                    context.startActivity(
+                        Intent(Settings.ACTION_WIFI_SETTINGS)
+                    )
                 }
             }
         }
