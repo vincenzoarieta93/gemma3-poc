@@ -3,6 +3,7 @@ package it.spindox.data.repository.abstraction
 import it.spindox.data.model.LlmModel
 import it.spindox.data.model.LlmResponse
 import it.spindox.result.Resource
+import kotlinx.coroutines.flow.Flow
 
 interface InferenceModelRepository {
 
@@ -14,7 +15,7 @@ interface InferenceModelRepository {
     fun doesModelExist(): Boolean
 
     fun startChat()
-    fun sendMessage(prompt: String): Resource<LlmResponse>
+    fun sendMessage(prompt: String): Flow<Resource<LlmResponse>>
 
     suspend fun deleteDownloadedModel()
 }

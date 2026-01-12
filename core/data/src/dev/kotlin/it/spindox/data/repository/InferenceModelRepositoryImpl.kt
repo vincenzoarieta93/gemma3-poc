@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.mediapipe.tasks.genai.llminference.ProgressListener
 import it.spindox.data.exceptions.NoChatSessionException
 import it.spindox.data.model.LlmModel
 import it.spindox.data.model.LlmResponse
@@ -11,8 +12,12 @@ import it.spindox.data.repository.abstraction.InferenceModelRepository
 import it.spindox.data.utils.EdgeFunctionUtils
 import it.spindox.result.Resource
 import it.spindox.result.error
+import it.spindox.result.loading
 import it.spindox.result.success
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
@@ -31,27 +36,44 @@ class InferenceModelRepositoryImpl @Inject constructor(
 
     override fun startChat() {
         llmInference = LlmInference.createFromOptions(
-            context, LlmInference.LlmInferenceOptions.builder()
-                .setMaxTopK(64)
-                .setModelPath(getModelPath())
+            context,
+            LlmInference.LlmInferenceOptions.builder().setMaxTopK(64).setModelPath(getModelPath())
                 .build()
         )
     }
 
-    override fun sendMessage(prompt: String): Resource<LlmResponse> {
-        return try {
-            // val pl = ProgressListener<String> { partialResult, done -> TODO("Not yet implemented") }
-            // llmInference?.generateResponseAsync(prompt, object: ProgressListener<String>() {})
-            val response = llmInference?.generateResponse(prompt.concatInstructionsToPrompt()) ?: throw NoChatSessionException()
-            success { parseModelResponse(response).mapToLlmResponse() }
-        } catch (e: Exception) {
-            error { e }
+    override fun sendMessage(prompt: String): Flow<Resource<LlmResponse>> = callbackFlow {
+        val inference = llmInference ?: run {
+            trySend(error { IllegalStateException("LLM not initialized") })
+            close()
+            return@callbackFlow
         }
+
+        val buffer = StringBuilder()
+        inference.generateResponseAsync(prompt.concatInstructionsToPrompt()) { partialResult, done ->
+            when {
+                !done -> {
+                    buffer.append(partialResult)
+                    trySend(loading())
+                }
+
+                else -> {
+                    val finalText = buffer.toString()
+                    if (finalText.isBlank()) {
+                        trySend(error { RuntimeException("Empty response") })
+                    } else {
+                        trySend(
+                            success { parseModelResponse(finalText).mapToLlmResponse() })
+                    }
+                    close()
+                }
+            }
+        }
+        awaitClose {}
     }
 
     data class FunctionCall(
-        val name: String,
-        val parameters: Map<String, Any>
+        val name: String, val parameters: Map<String, Any>
     )
 
     fun parseModelResponse(responseJson: String): FunctionCall? {
@@ -148,43 +170,8 @@ class InferenceModelRepositoryImpl @Inject constructor(
     }
 
     fun String.concatInstructionsToPrompt(): String {
-        val functionCallingPrompt = "You have access to functions. If you decide to invoke any of the function(s),\n" +
-                "you MUST put it in the format of\n" +
-                "{\"name\": function name, \"parameters\": dictionary of argument name and its value}\n" +
-                "\n" +
-                "You SHOULD NOT include any other text in the response if you call a function\n" +
-                "[\n" +
-                "  {\n" +
-                "    \"name\": \"navigate_to_destination\",\n" +
-                "    \"description\": \"Navigate to a specific destination in the app\",\n" +
-                "    \"parameters\": {\n" +
-                "      \"type\": \"object\",\n" +
-                "      \"properties\": {\n" +
-                "        \"DESTINATION\": {\n" +
-                "          \"type\": \"STRING\"\n" +
-                "        }\n" +
-                "      },\n" +
-                "      \"required\": [\n" +
-                "        \"DESTINATION\"\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"name\": \"switch_app_theme\",\n" +
-                "    \"description\": \"Switch the current theme of the app to the opposite one\",\n" +
-                "    \"parameters\": {\n" +
-                "      \"type\": \"object\",\n" +
-                "      \"properties\": {\n" +
-                "        \"THEME\": {\n" +
-                "          \"type\": \"STRING\"\n" +
-                "        }\n" +
-                "      },\n" +
-                "      \"required\": [\n" +
-                "        \"THEME\"\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  }\n" +
-                "]"
+        val functionCallingPrompt =
+            "You have access to functions. If you decide to invoke any of the function(s),\n" + "you MUST put it in the format of\n" + "{\"name\": function name, \"parameters\": dictionary of argument name and its value}\n" + "\n" + "You SHOULD NOT include any other text in the response if you call a function\n" + "[\n" + "  {\n" + "    \"name\": \"navigate_to_destination\",\n" + "    \"description\": \"Navigate to a specific destination of the app or device\",\n" + "    \"parameters\": {\n" + "      \"type\": \"object\",\n" + "      \"properties\": {\n" + "        \"DESTINATION\": {\n" + "          \"type\": \"STRING\"\n" + "        }\n" + "      },\n" + "      \"required\": [\n" + "        \"DESTINATION\"\n" + "      ]\n" + "    }\n" + "  },\n" + "  {\n" + "    \"name\": \"switch_app_theme\",\n" + "    \"description\": \"Switch the current theme of the app to the opposite one\",\n" + "    \"parameters\": {\n" + "      \"type\": \"object\",\n" + "      \"properties\": {\n" + "        \"THEME\": {\n" + "          \"type\": \"STRING\"\n" + "        }\n" + "      },\n" + "      \"required\": [\n" + "        \"THEME\"\n" + "      ]\n" + "    }\n" + "  }\n" + "]"
         return "$functionCallingPrompt\n${this}"
     }
 

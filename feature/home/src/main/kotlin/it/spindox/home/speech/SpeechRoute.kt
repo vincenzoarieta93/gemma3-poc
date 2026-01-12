@@ -1,7 +1,9 @@
 package it.spindox.home.speech
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -47,10 +49,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import it.spindox.home.preparation.ErrorMessage
+import it.spindox.navigation.AppRoute
 
 @Composable
 fun SpeechRoute(
     snackbarHostState: SnackbarHostState,
+    onNavigateToDestination: (AppRoute) -> Unit,
     viewModel: SpeechViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -92,7 +96,13 @@ fun SpeechRoute(
                     )
                 }
                 is SpeechUiEvent.NavigateToDestination -> {
-                    // TODO("Implement this method")
+                    if (event.destination == AppRoute.ModelSelectionScreen.route) {
+                        onNavigateToDestination(AppRoute.ModelSelectionScreen)
+                    } else if (event.destination == "Wi-Fi") {
+                        context.startActivity(
+                            Intent(Settings.ACTION_WIFI_SETTINGS)
+                        )
+                    }
                 }
             }
         }

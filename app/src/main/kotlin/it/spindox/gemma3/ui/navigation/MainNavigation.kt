@@ -61,6 +61,19 @@ fun MainNavigation(
         composable(AppRoute.SpeechScreen.route) {
             SpeechRoute(
                 snackbarHostState = snackbarHostState,
+                onNavigateToDestination = { destinationRoute ->
+                    when (destinationRoute) {
+                        AppRoute.ModelSelectionScreen ->
+                            navController.navigate(destinationRoute) {
+                                popUpTo(AppRoute.ModelSelectionScreen.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+
+                        else -> {
+                            // Do nothing
+                        }
+                    }
+                }
             )
         }
     }
