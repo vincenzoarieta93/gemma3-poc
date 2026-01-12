@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import it.spindox.coroutine.DefaultDispatcherProvider
-import it.spindox.data.model.FunctionCallEvent
 import it.spindox.data.model.LlmResponse
 import it.spindox.data.model.SpeechEvent
 import it.spindox.data.model.ThemeAppearance
 import it.spindox.data.repository.abstraction.InferenceModelRepository
+import it.spindox.data.utils.EdgeFunctionUtils
 import it.spindox.data.voicecontroller.SpeechRecognizerController
 import it.spindox.domain.usecase.GetThemeUseCase
 import it.spindox.domain.usecase.SendMessageUseCase
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,11 +65,7 @@ class SpeechViewModel @Inject constructor(
                             oldState.copy(
                                 audioLevel = 0f,
                                 isListening = false,
-                                status = if (event.errorCode == SpeechRecognizer.ERROR_CLIENT) {
-                                    oldState.status
-                                } else {
-                                    SpeechStatus.ERROR
-                                },
+                                status = oldState.status,
                                 recognizedText = if (event.errorCode == SpeechRecognizer.ERROR_CLIENT) {
                                     ""
                                 } else {
@@ -91,6 +86,7 @@ class SpeechViewModel @Inject constructor(
                         _uiState.update { oldState ->
                             oldState.copy(
                                 isListening = false,
+                                promptState = PromptState.PROCESSING,
                                 recognizedText = event.text
                             )
                         }
@@ -116,6 +112,7 @@ class SpeechViewModel @Inject constructor(
                             oldState.copy(
                                 isListening = true,
                                 recognizedText = "",
+                                promptState = PromptState.IDLE,
                                 status = SpeechStatus.SUCCESS
                             )
                         }
@@ -136,56 +133,93 @@ class SpeechViewModel @Inject constructor(
                 .collectLatest { response ->
                     when (response) {
                         is Resource.Error -> {
-                            FunctionCallEvent.Error(response.getErrorMessage())
+                            handleInferenceError(response)
                         }
 
                         is Resource.Success -> {
-                            when (val llmResponse = response.data) {
-                                is LlmResponse.Text -> {
-                                    // No function detected by the model. Do nothing
-                                    Log.d(TAG, "Got text: ${llmResponse.text}")
-
-                                }
-
-                                is LlmResponse.SwitchThemeCall -> {
-                                    toggleTheme()
-                                    _speechRouteUiEvent.emit(SpeechUiEvent.ShowSnackbar("Theme changed successfully"))
-                                }
-
-                                is LlmResponse.NavigateToDestination -> {
-                                    Log.d(TAG, "Navigate to destination ${llmResponse.destination}")
-                                    val appRoute = if (llmResponse.destination.contains("home", true)) {
-                                        AppRoute.ModelSelectionScreen.route
-                                    } else {
-                                        null
-                                    }
-
-                                    appRoute?.let {
-                                        _speechRouteUiEvent.emit(
-                                            SpeechUiEvent.NavigateToDestination(it)
-                                        )
-                                    }
-                                }
-
-                                is LlmResponse.OpenWiFiSettingsScreen -> {
-                                    Log.d(TAG, "Navigate to wi-fi settings")
-                                    _speechRouteUiEvent.emit(
-                                        SpeechUiEvent.OpenWiFiSettingsScreen
-                                    )
-                                }
-
-                                is LlmResponse.UnknownFunctionCall -> {
-                                    FunctionCallEvent.Error(llmResponse.message)
-                                }
-                            }
+                            handleInferenceSuccess(response)
                         }
 
                         else -> {
-                            // TODO("Update _uiState")
+                            _uiState.update { oldState ->
+                                oldState.copy(
+                                    promptState = PromptState.PROCESSING
+                                )
+                            }
                         }
                     }
                 }
         }
+    }
+
+    private suspend fun handleInferenceSuccess(response: Resource.Success<LlmResponse>) {
+        var promptState = PromptState.SUCCESS
+        var errorMessage = ""
+
+        when (val llmResponse = response.data) {
+            is LlmResponse.Text -> {
+                // No function detected by the model. Do nothing
+                Log.d(TAG, "Got text: ${llmResponse.text}")
+                promptState = PromptState.ERROR
+                errorMessage =
+                    "Model has not detected any function call. It has replied with simple text"
+            }
+
+            is LlmResponse.SwitchThemeCall -> {
+                // SwitchThemeCall detected. Toggle theme
+                Log.d(TAG, "${EdgeFunctionUtils.SWITCH_THEME_FUN_DECLARATION} detected")
+                toggleTheme()
+                _speechRouteUiEvent.emit(SpeechUiEvent.ShowSnackbar("Theme changed successfully"))
+            }
+
+            is LlmResponse.NavigateToDestination -> {
+                // NavigateToDestination detected. Navigate to destination
+                Log.d(TAG, "${EdgeFunctionUtils.NAVIGATE_TO_DESTINATION_FUN_DECLARATION} detected. Destination is ${llmResponse.destination}")
+
+                if (llmResponse.destination.contains("home", true)) {
+                    _speechRouteUiEvent.emit(
+                        SpeechUiEvent.NavigateToDestination(AppRoute.ModelSelectionScreen.route)
+                    )
+                } else {
+                    promptState = PromptState.ERROR
+                    errorMessage = "No destination detected for navigation"
+                }
+            }
+
+            is LlmResponse.OpenWiFiSettingsScreen -> {
+                // OpenWiFiSettingsScreen detected. Open WiFi settings
+                Log.d(TAG, "${EdgeFunctionUtils.OPEN_SYSTEM_SETTINGS_FUN_DECLARATION} detected")
+                _speechRouteUiEvent.emit(
+                    SpeechUiEvent.OpenWiFiSettingsScreen
+                )
+            }
+
+            is LlmResponse.UnknownFunctionCall -> {
+                // Unknown function detected
+                Log.d(TAG, "Unknown function detected: ${llmResponse.message}")
+                promptState = PromptState.ERROR
+                errorMessage = "Unknown function detected"
+            }
+        }
+
+        _uiState.update { oldState ->
+            oldState.copy(
+                promptState = promptState
+            )
+        }
+
+        if (promptState == PromptState.ERROR && errorMessage.isNotBlank()) {
+            _speechRouteUiEvent.emit(SpeechUiEvent.ShowSnackbar(errorMessage))
+        }
+    }
+
+    private suspend fun handleInferenceError(response: Resource.Error) {
+        _uiState.update { oldState ->
+            oldState.copy(
+                promptState = PromptState.ERROR
+            )
+        }
+        _speechRouteUiEvent.emit(SpeechUiEvent.ShowSnackbar("An error occurred: ${response.throwable.localizedMessage.orEmpty()}"))
     }
 
     private val _uiState: MutableStateFlow<SpeechUiState> =

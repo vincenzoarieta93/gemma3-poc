@@ -62,8 +62,12 @@ class InferenceModelRepositoryImpl @Inject constructor(
                     if (finalText.isBlank()) {
                         trySend(error { RuntimeException("Empty response") })
                     } else {
-                        trySend(
-                            success { parseModelResponse(finalText).mapToLlmResponse() })
+                        val parsedModelResponse = parseModelResponse(finalText)
+                        if (parsedModelResponse == null) {
+                            trySend(error { RuntimeException("Invalid response") })
+                        } else {
+                            trySend(success { parsedModelResponse.mapToLlmResponse() })
+                        }
                     }
                     close()
                 }
@@ -111,6 +115,7 @@ class InferenceModelRepositoryImpl @Inject constructor(
 
         return when (this.name) {
             EdgeFunctionUtils.SWITCH_THEME_FUN_DECLARATION -> {
+                Log.d(TAG, "Switching theme")
                 LlmResponse.SwitchThemeCall
             }
 
@@ -121,6 +126,7 @@ class InferenceModelRepositoryImpl @Inject constructor(
                     Log.e(TAG, "Error while parsing destination property", e)
                     ""
                 }
+                Log.d(TAG, "Navigating to destination: $destination")
                 LlmResponse.NavigateToDestination(
                     destination
                 )
@@ -216,22 +222,22 @@ class InferenceModelRepositoryImpl @Inject constructor(
                 "        \"THEME\"\n" +
                 "      ]\n" +
                 "    }\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"name\": \"open_system_settings_screen\",\n" +
-                "    \"description\": \"Open a specific settings screen of the system\",\n" +
-                "    \"parameters\": {\n" +
-                "      \"type\": \"object\",\n" +
-                "      \"properties\": {\n" +
-                "        \"SETTINGS_SCREEN\": {\n" +
-                "          \"type\": \"STRING\"\n" +
-                "        }\n" +
-                "      },\n" +
-                "      \"required\": [\n" +
-                "        \"SETTINGS_SCREEN\"\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  },\n" +
+                "  }\n" +
+//                "  {\n" +
+//                "    \"name\": \"open_system_settings_screen\",\n" +
+//                "    \"description\": \"Open a specific settings screen of the system\",\n" +
+//                "    \"parameters\": {\n" +
+//                "      \"type\": \"object\",\n" +
+//                "      \"properties\": {\n" +
+//                "        \"SETTINGS_SCREEN\": {\n" +
+//                "          \"type\": \"STRING\"\n" +
+//                "        }\n" +
+//                "      },\n" +
+//                "      \"required\": [\n" +
+//                "        \"SETTINGS_SCREEN\"\n" +
+//                "      ]\n" +
+//                "    }\n" +
+//                "  },\n" +
                 "]"
         return "$functionCallingPrompt\n${this}"
     }

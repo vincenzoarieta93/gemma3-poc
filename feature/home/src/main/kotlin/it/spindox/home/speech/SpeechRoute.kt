@@ -17,14 +17,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -48,6 +53,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import it.spindox.designsystem.theme.MainAppTheme
+import it.spindox.designsystem.theme.customColors
 import it.spindox.home.preparation.ErrorMessage
 import it.spindox.navigation.AppRoute
 
@@ -175,7 +182,7 @@ private fun SpeechScreenSuccessUi(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 SpeechText(
-                    text = state.recognizedText, isListening = state.isListening
+                    text = state.recognizedText, promptState = state.promptState, isListening = state.isListening
                 )
             }
 
@@ -293,28 +300,70 @@ fun PulsingMic(
 @Composable
 fun SpeechText(
     text: String,
+    promptState: PromptState,
     isListening: Boolean
 ) {
     val isEmpty = text.isBlank()
+    // Determina l'icona in base allo stato
 
-    Text(
-        text = when {
-            isListening -> {
-                if (isEmpty) "Listening..." else text
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        if (!isEmpty) {
+            when (promptState) {
+                PromptState.ERROR -> {
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                PromptState.SUCCESS -> {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.customColors.successColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                PromptState.PROCESSING -> {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+                else -> {
+                    // Draw nothing
+                }
             }
+        }
+        Text(
+            text = when {
+                isListening -> {
+                    if (isEmpty) {
+                        "Listening..."
+                    } else {
+                        text
+                    }
+                }
 
-            else -> {
-                if (isEmpty) "Press the button to speech" else text
-            }
-        },
-        style = MaterialTheme.typography.bodyLarge,
-        color = if (isEmpty) {
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        },
-        textAlign = TextAlign.Center
-    )
+                else -> {
+                    if (isEmpty) {
+                        "Press the button to speech"
+                    } else {
+                        text
+                    }
+                }
+            },
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (isEmpty) {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable
@@ -378,6 +427,7 @@ fun SpeechScreenPreview() {
             recognizedText = "Hello, how are you?",
             audioLevel = 0f,
             hasAudioPermission = false,
+            promptState = PromptState.ERROR
         ),
         events = SpeechScreenEvent()
     )
