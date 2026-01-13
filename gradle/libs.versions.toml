@@ -33,7 +33,6 @@ uiToolingPreviewAndroid = "1.7.7"
 room = "2.6.1"
 gson = "2.11.0"
 genai = "0.10.29"
-localagents = "0.1.0"
 materialIconExtended = "1.7.8"
 commonmark = "1.0.0-alpha03"
 richtext = "1.0.0-alpha03"
@@ -83,7 +82,6 @@ retrofit-converter = { group = "com.squareup.retrofit2", name = "converter-gson"
 retrofit-kotlin-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofit-kotlinx-serialization-json" }
 okhttp-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "logging-interceptor" }
 tasks-genai = { module = "com.google.mediapipe:tasks-genai", name = "tasks-genai", version.ref = "genai" }
-ai-edge-localagents = { group = "com.google.ai.edge.localagents", name = "localagents-fc", version.ref = "localagents" }
 material-icon-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconExtended" }
 commonmark = { group = "com.halilibo.compose-richtext", name = "richtext-commonmark", version.ref = "commonmark" }
 richtext = { group = "com.halilibo.compose-richtext", name = "richtext-ui-material3", version.ref = "richtext" }

@@ -1,7 +1,6 @@
 package it.spindox.data.repository
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import it.spindox.data.helper.ModelPathHelper
@@ -29,6 +28,8 @@ class InferenceModelRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "InferenceModelRepository"
+        private const val MAX_TOKENS = 2048
+        private const val MAX_TOP_K = 64
     }
 
     private var model: LlmModel? = null
@@ -38,7 +39,8 @@ class InferenceModelRepositoryImpl @Inject constructor(
         llmInference = LlmInference.createFromOptions(
             context,
             LlmInference.LlmInferenceOptions.builder()
-                .setMaxTopK(64)
+                .setMaxTopK(MAX_TOP_K)
+                .setMaxTokens(MAX_TOKENS)
                 .apply { model?.preferredBackend?.let { setPreferredBackend(it) } }
                 .setModelPath(getModelPath())
                 .build()
@@ -87,10 +89,7 @@ class InferenceModelRepositoryImpl @Inject constructor(
         return try {
             val jsonObj = JSONObject(responseJson)
 
-            // Estrai il nome
             val name = jsonObj.getString("name")
-
-            // Estrai i parametri
             val parameters = mutableMapOf<String, Any>()
             val paramsObj = jsonObj.optJSONObject("parameters")
             paramsObj?.keys()?.forEach { key ->
